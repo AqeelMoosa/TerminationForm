@@ -1,0 +1,17 @@
+/* Enter your custom styles here */
+.username-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.username-text {
+    font-size: 1.1rem !important;
+    width: 100% !important;
+}
+.header-panel{ 
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    width: 100%;
+    padding: 1.3em 0 0 0;
+    text-align: center;
+}

@@ -1,0 +1,119 @@
+{
+  "_version": "1.65.0",
+  "sap.app": {
+    "id": "terminationformapplication.terminationformapplication",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.15.1",
+      "toolsId": "bf423096-78ef-419a-82c6-0e0e061c974a"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v2/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "localUri": "localService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.128.1",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "terminationformapplication.terminationformapplication.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "async": true,
+        "viewPath": "terminationformapplication.terminationformapplication.view",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "clearControlAggregation": false
+      },
+      "routes": [
+        {
+          "name": "RouteTerminationForm",
+          "pattern": ":?query:",
+          "target": [
+            "TargetTerminationForm"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetTerminationForm": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "TerminationForm",
+          "viewName": "TerminationForm"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "terminationformapplication.terminationformapplication.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "App"
+    }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "terminationformapplicationterminationformapplication"
+  }
+}
