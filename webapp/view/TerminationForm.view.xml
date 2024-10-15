@@ -26,7 +26,7 @@
                        			icon="sap-icon://accept"
                         		width="200px" 
                        			class="customButton"
-                        		type="Accept">
+                        		type="Accept"> 
                         <layoutData>
                             <FlexItemData growFactor="1" />
                         </layoutData>
@@ -99,18 +99,15 @@
 				<unified:FileUploader
                     id="terminationLetter"
                     name="fileUpload"
-                    uploadUrl="uploadUrl"
                     placeholder="Choose a file"
                     width="100%"
-                    change="onFileChange" />
+                    change="onFileChange"/>
 				<Label text="Calculation document severance pay" />
 				<unified:FileUploader
                     id="calculationDocument"
                     name="fileUpload"
-                    uploadUrl="uploadUrl"
                     placeholder="Choose a file"
-                    width="100%"
-                    change="onFileChange" />
+                    width="100%"/>
 			</f:content>
 		</f:SimpleForm>
 
@@ -150,10 +147,10 @@
         			</ComboBox>
 
 				<Label text="If employee had direct reports, to who should they be moved?" />
-				<Input value="" placeholder="FullName..."/>
+				<Input value="" placeholder="FullName..." id="directReports"/>
 
 				<Label text="Personal email address" />
-				<Input value="" placeholder="example123@gmail.com"/>
+				<Input value="" placeholder="example123@gmail.com" id="Email"/>
 
 
 			    </f:content>
