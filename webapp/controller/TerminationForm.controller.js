@@ -1,9 +1,10 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/DatePicker",
-    "sap/m/MessageBox"
+    "sap/m/MessageBox",
+    "sap/ui/model/Filter"
 ],
-function (Controller, DatePicker, MessageBox) {
+function (Controller, DatePicker, MessageBox, Filter) {
     "use strict";
 
     return Controller.extend("terminationformapplication.terminationformapplication.controller.TerminationForm", {
@@ -11,6 +12,11 @@ function (Controller, DatePicker, MessageBox) {
             this.getUserId();
             this.setUserId()
             this.getUserDetails()
+
+            this.checkTeamMembersSize();
+
+            var oView = this.getView();
+			this.oSF = oView.byId("searchField");
 
             // const fileUploader = this.getView().byId("terminationLetter");
             // fileUploader.attachChange(this.onFileChange, this);
@@ -72,6 +78,33 @@ function (Controller, DatePicker, MessageBox) {
         },
         // #endregion
         
+        // #region Dynamic Direct Reports
+        checkTeamMembersSize: function () {
+            const that = this;
+            const oModel = this.getOwnerComponent().getModel();
+            const sUserId = this._sUserId;  // Assuming user ID is available in the controller context
+
+            // Read User entity to get the teamMembersSize property
+            oModel.read(`/User('${sUserId}')`, {
+                success: function (oData) {
+                    const iTeamMembersSize = oData.teamMembersSize;
+
+                    // Check if teamMembersSize is 1 or greater
+                    if (iTeamMembersSize >= 1) {
+                        // Show the label and textbox if condition is met
+                        that.getView().byId("directReports").setVisible(true);
+                    } else {
+                        // Hide the label and textbox otherwise
+                        that.getView().byId("directReports").setVisible(false);
+                    }
+                },
+                error: function (oError) {
+                    console.error("Error fetching User entity:", oError);
+                }
+            });
+        },
+        // #endregion
+
 
 
 
@@ -138,7 +171,11 @@ function (Controller, DatePicker, MessageBox) {
             oDataModel.read(`/User('${this._sUserId}')`, {
                 success: function (oData) {
                     const oUsername = that.getView().byId("Username")
+                    const name = that.getView().byId("empname")
+                    const empNr = that.getView().byId("empnr")
                     const sFullname = oData.defaultFullName;
+                    name.setText(`${sFullname}`);
+                    empNr.setText(`${that._sUserId}`)
                     oUsername.setText(`${sFullname} (${that._sUserId})`);
                 },
                 error: function (oError) {
@@ -147,23 +184,87 @@ function (Controller, DatePicker, MessageBox) {
             });
         },
         // #endregion
+        // #region On resignation reason
+        onComboBoxSelectionChange: function (oEvent) {
+            // Get the selected item from the ComboBox
+            var oComboBox = this.getView().byId("terminationReasonComboBox");
+            var oSelectedItem = oComboBox.getSelectedItem();
+
+            if (oSelectedItem) {
+                // Get the key of the selected item
+                var sSelectedKey = oSelectedItem.getKey();
+                MessageBox.show(
+                    "Based on the reason for termination, here is a reminder of the eligibility for a pro-rata bonus payment", // Message text
+                    {
+                        icon: MessageBox.Icon.INFORMATION, // Icon type
+                        title: "Reminder", // Dialog title
+                        actions: [MessageBox.Action.OK], // Action buttons
+                        onClose: function (oAction) {
+                            // Handle action if necessary (optional)
+                            console.log("MessageBox closed with action: " + oAction);
+                        }
+                    }
+                );
+                
+                // Check if the selected key is "resignation"
+                if (sSelectedKey === "resignation") {
+                    // Show label and input field
+                    this.getView().byId("resignationDatelbl").setVisible(true);
+                    this.getView().byId("resignationDatePicker").setVisible(true);
+                } else {
+                    // Hide label and input field for other selections
+                    this.getView().byId("resignationDatelbl").setVisible(false);
+                    this.getView().byId("resignationDatePicker").setVisible(false);
+                }
+            }
+        },
+        // #endregion
+
+        // #region Search Function
+        onSuggest: function (event) {
+			var sValue = event.getParameter("suggestValue"),
+				aFilters = [];
+			if (sValue) {
+				aFilters = [
+					new Filter([
+						new Filter("EmpNr", function (sText) {
+							return (sText || "").toUpperCase().indexOf(sValue.toUpperCase()) > -1;
+						}),
+						new Filter("name", function (sDes) {
+							return (sDes || "").toUpperCase().indexOf(sValue.toUpperCase()) > -1;
+						})
+					], false)
+				];
+			}
+
+			this.oSF.getBinding("suggestionItems").filter(aFilters);
+			this.oSF.suggest();
+		},
+        // #endregion
+
 
 
 
         // #region Send Termination details to custom MDF
         submitForm: async function() {
             const that = this;
-            let EmpNr = that.getView().byId("empnr").getValue();
-            let EmpName = that.getView().byId("empname").getValue();
+            let EmpNr = that.getView().byId("empnr").getText();
+            let EmpName = that.getView().byId("empname").getText();
 
             let PosR = that.getView().byId("comboBox1").getValue();
             let Regret = that.getView().byId("comboBox2").getValue();
-            let directReport = that.getView().byId("directReports").getValue();
+            let directReport = that.getView().byId("searchField").getValue();
             let email = that.getView().byId("Email").getValue();
+            let TermReason = that.getView().byId("terminationReasonComboBox").getValue();
+            let backFill = that.getView().byId("comboBox4").getValue();
+
+            let resigDate = that.getView().byId("resignationDatePicker").getValue()
+            let rDate = new Date(resigDate);
+            let rDateInTicks = "/Date(" + rDate.getTime() +")/";
 
             let LastContractDay = that.getView().byId("datePicker").getValue();
-            let oDate = new Date(LastContractDay); // Convert the string to a JavaScript Date object
-            let oDateInTicks = "/Date(" + oDate.getTime() + ")/"; // Convert to the required ticks format
+            let oDate = new Date(LastContractDay);
+            let oDateInTicks = "/Date(" + oDate.getTime() + ")/";
         
 
             // let tLetter = that.getView().byId("terminationLetter").getValue();
@@ -171,26 +272,56 @@ function (Controller, DatePicker, MessageBox) {
 
             let payload = {};
 
-            payload = {
-                "__metadata": {
-                    "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
-                    "type" : "SFOData.cust_EmployeeTerminationForm"
-                },
-            
-                "cust_PositionRemain": PosR,
-                "cust_RegrettedLoss": Regret,
-                "cust_DirectReports": directReport,
-                "cust_Email": email,
-                "cust_EmployeeNumber": EmpNr,
-                "cust_EmployeeName": EmpName,
-                "cust_LastContractDay" : oDateInTicks,
-                // "cust_TerminationLetter" : {
-                //     "__metadata" : {
-                //         "uri" : "Attachment('"+that._sAttachmentId+"')"
-                //   }
-                //  }
+            if (resigDate == '') {
+                payload = {
+                    "__metadata": {
+                        "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
+                        "type" : "SFOData.cust_EmployeeTerminationForm"
+                    },
                 
-            };
+                    "cust_PositionRemain": PosR,
+                    "cust_RegrettedLoss": Regret,
+                    "cust_DirectReports": directReport,
+                    "cust_Email": email,
+                    "cust_EmployeeNumber": EmpNr,
+                    "cust_EmployeeName": EmpName,
+                    "cust_LastContractDay" : oDateInTicks,
+                    "cust_TerminationReason" : TermReason,
+                    "cust_EmployeeBackfill" : backFill,
+                    
+                    // "cust_TerminationLetter" : {
+                    //     "__metadata" : {
+                    //         "uri" : "Attachment('"+that._sAttachmentId+"')"
+                    //   }
+                    //  }
+                    
+                };
+            } else {
+                payload = {
+                    "__metadata": {
+                        "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
+                        "type" : "SFOData.cust_EmployeeTerminationForm"
+                    },
+                
+                    "cust_PositionRemain": PosR,
+                    "cust_RegrettedLoss": Regret,
+                    "cust_DirectReports": directReport,
+                    "cust_Email": email,
+                    "cust_EmployeeNumber": EmpNr,
+                    "cust_EmployeeName": EmpName,
+                    "cust_LastContractDay" : oDateInTicks,
+                    "cust_TerminationReason" : TermReason,
+                    "cust_EmployeeBackfill" : backFill,
+                    "cust_ResignationDate" : rDateInTicks,
+                    
+                    // "cust_TerminationLetter" : {
+                    //     "__metadata" : {
+                    //         "uri" : "Attachment('"+that._sAttachmentId+"')"
+                    //   }
+                    //  }
+                    
+                };
+            }
 
             
 
@@ -203,11 +334,21 @@ function (Controller, DatePicker, MessageBox) {
                     });
 
                     // Clear the input fields after submission
-                    that.getView().byId("empnr").setValue('');   // Clear employee number
-                    that.getView().byId("empname").setValue(''); // Clear employee name
-                    that.getView().byId("datePicker").setValue(''); // Clear datepicker
+                    that.getView().byId("empnr").setText('');   // Clear employee number
+                    that.getView().byId("empname").setText(''); // Clear employee name
+                    
                     that.getView().byId("terminationLetter").setValue('')
                     that.getView().byId("calculationDocument").setValue('')
+                    that.getView().byId("comboBox1").setValue('');
+                    that.getView().byId("comboBox2").setValue('');
+                    that.getView().byId("searchField").setValue('');
+                    that.getView().byId("Email").setValue('');
+                    that.getView().byId("terminationReasonComboBox").setValue('');
+                    that.getView().byId("comboBox4").setValue('');
+
+                    that.getView().byId("resignationDatePicker").setValue('')
+                    that.getView().byId("datePicker").setValue(''); // Clear datepicker
+                
                 },
                 error: function (oError){
                     console.error(oError)

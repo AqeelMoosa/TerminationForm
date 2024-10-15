@@ -6,15 +6,6 @@
     xmlns:unified="sap.ui.unified"
     xmlns:l="sap.ui.layout">
     <Page id="page" title="{i18n>title}">
-<!-- 
-    <customHeader>
-			<Toolbar>
-				<ToolbarSpacer/>
-				<Title text="Termination Sappi Employee" level="H2"/>
-				<ToolbarSpacer/>
-			</Toolbar>
-			
-	</customHeader> -->
 	
 				<HBox class="header-panel">
                		<HBox/>
@@ -59,13 +50,12 @@
 			<f:content>
 				<Label text="PERS.NO" />
 
-				<Input value="" placeholder="Input employee personnel number" id="empnr"/>
+				<Text id="empnr"/>
 
 				<Label text="Employee Name" />
 
-				<Input value="" placeholder="Specify the employee name" id="empname">
+				<Text id="empname"></Text>
 
-				</Input>
 				<Label text="Last Contract Day" />
 				  <DatePicker
                         id="datePicker"
@@ -130,6 +120,23 @@
 			columnsM="1"
 			singleContainerFullSize="false" >
 			<f:content>
+				<Label text="What is the reason for termination" />
+					<ComboBox id="terminationReasonComboBox" 
+              			selectionChange=".onComboBoxSelectionChange"
+						placeholder="Select..."
+             			items="{
+                  				path: '/PickListValueV2',
+                  				filters: [{path: 'PickListV2_id', operator: 'EQ', value1: 'TerminationReason'}]
+              					}">
+        				<core:Item key="{externalCode}" text="{externalCode}" />
+    				</ComboBox>
+
+    <!-- Label and DatePicker -->
+    			<Label text="Resignation Date" visible="false" id="resignationDatelbl" />
+    				<DatePicker id="resignationDatePicker" displayFormat="yyyy-MM-dd" value="{/selectedDate}"
+                        valueFormat="yyyy-MM-dd"
+                        placeholder="Select a date"/>
+
 				<Label text="Should the position remain in EC/SAP?" />
 					<ComboBox id="comboBox1" placeholder="Select...">
             			<items>
@@ -137,6 +144,14 @@
                 			<core:Item key="No" text="No" />
             			</items>
        				 </ComboBox>
+
+				<Label text="Will this position be backfilled?"></Label>
+				<ComboBox id="comboBox4" placeholder="Select...">
+					<items>
+						<core:Item key="Yes" text="Yes" />
+                		<core:Item key="No" text="No" />
+					</items>
+				</ComboBox>
 
 				<Label text="Regretted loss? EU defintion: does the departure have a negative" />
 					<ComboBox id="comboBox2" placeholder="Select...">
@@ -146,12 +161,46 @@
            				</items>
         			</ComboBox>
 
-				<Label text="If employee had direct reports, to who should they be moved?" />
-				<Input value="" placeholder="FullName..." id="directReports"/>
 
 				<Label text="Personal email address" />
 				<Input value="" placeholder="example123@gmail.com" id="Email"/>
 
+
+			    </f:content>
+			</f:SimpleForm>
+
+			<f:SimpleForm id="directReports"
+			editable="true"
+			layout="ResponsiveGridLayout"
+			title="DirectReports"
+			labelSpanXL="4"
+			labelSpanL="4"
+			labelSpanM="12"
+			labelSpanS="12"
+			adjustLabelSpan="false"
+			emptySpanXL="0"
+			emptySpanL="0"
+			emptySpanM="0"
+			emptySpanS="0"
+			columnsXL="2"
+			columnsL="2"
+			columnsM="1"
+			singleContainerFullSize="false" >
+			<f:content>
+
+				<Label text="If employee had direct reports, to who should they be moved?" id="directReplbl"/>
+					<SearchField
+						id="searchField"
+						width="50%"
+						placeholder="Search for..."
+						enableSuggestions="true"
+						suggest=".onSuggest"
+						suggestionItems="{
+							path: 'UserModel>/'
+							
+						}">
+			<SuggestionItem text="{UserModel>name}" description="({path:'UserModel>EmpNr'})" key="{UserModel>EmpNr}" />
+		</SearchField>
 
 			    </f:content>
 			</f:SimpleForm>
