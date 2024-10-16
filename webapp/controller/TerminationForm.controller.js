@@ -15,6 +15,8 @@ function (Controller, DatePicker, MessageBox, Filter) {
 
             this.checkTeamMembersSize();
 
+
+
             var oView = this.getView();
 			this.oSF = oView.byId("searchField");
 
@@ -76,6 +78,60 @@ function (Controller, DatePicker, MessageBox, Filter) {
                 console.error("No file selected.");
             }
         },
+
+        onFileChange2: function (oEvent) {
+            // Log the event to check what is passed
+            console.log("FileChange Event: ", oEvent);
+        
+            // Get the FileUploader control explicitly by its ID
+            const fileUploader2 = this.getView().byId("calculationDocument");
+        
+            // Log the FileUploader control to verify it's correctly retrieved
+            console.log("FileUploader control: ", fileUploader2);
+        
+            // Check if a file was selected
+            if (oEvent.getParameter("files") && oEvent.getParameter("files").length > 0) {
+                const file2 = oEvent.getParameter("files")[0];  // Get the first selected file
+        
+                // Log the selected file details
+                console.log("Selected File: ", file2);
+        
+                // Extract file properties
+                const pFileName = file2.name;     // File name
+                const pMimeType = file2.type;     // MIME type
+        
+                // Log the file name and MIME type
+                console.log("File Name: ", pFileName);
+                console.log("MIME Type: ", pMimeType);
+        
+                // Read the file content and convert it to Base64
+                const fileReader2 = new FileReader();
+        
+                // Once file content is read, process it
+                fileReader2.onload = function () {
+                    // File content is base64-encoded, removing the 'data:...' prefix
+                    const pBase64Data = fileReader2.result.split(',')[1];
+        
+                    // Log the Base64 encoded data (for debugging purposes, limit log size)
+                    console.log("Base64 Data: ", pBase64Data.substring(0, 100)); // Logs first 100 characters
+        
+                    // Store file data for later use (upload)
+                    this._oFileData2 = {
+                        fileName: pFileName,
+                        mimeType: pMimeType,
+                        fileContent: pBase64Data
+                    };
+        
+                    console.log("File data processed and stored for upload.");
+                }.bind(this);  // Ensure the correct context of `this`
+        
+                // Start reading the file as a data URL (base64)
+                fileReader2.readAsDataURL(file2);
+            } else {
+                // Log error if no file is selected
+                console.error("No file selected.");
+            }
+        },
         // #endregion
         
         // #region Dynamic Direct Reports
@@ -119,10 +175,11 @@ function (Controller, DatePicker, MessageBox, Filter) {
                     "__metadata": {
                         "type": "SFOData.Attachment"
                     },
+
                     "fileName": sFileName,
                     "fileContent": sBase64Data, // Base64 encoded file content (excluding data URI scheme)
                     "module": "GENERIC_OBJECT",
-                    "userId": that._sUserId
+                    "userId": "Technical"
                 };
 
                 
@@ -130,10 +187,40 @@ function (Controller, DatePicker, MessageBox, Filter) {
                 // Create the attachment
                 oModel.create("/Attachment", oPayload, {
                     success: function (oData) {
-                        const that = this;
                         resolve(oData.attachmentId); // Return the attachment ID
-                        that._sAttachmentId = oData.attachmentId;
                         console.log("Attachment uploaded successfully, Attachment ID: ", oData.attachmentId); 
+                    },
+                    error: function (oError) {
+                        reject(oError); // Reject on error
+                    }
+                });
+            });
+        },
+
+        uploadAttachment2: function (pFileName, pBase64Data) {
+            const that = this;
+            return new Promise(function (resolve, reject) {
+                const oModel = that.getOwnerComponent().getModel();
+        
+                // Payload for creating an attachment
+                const oPayload2 = {
+                    "__metadata": {
+                        "type": "SFOData.Attachment"
+                    },
+
+                    "fileName": pFileName,
+                    "fileContent": pBase64Data, // Base64 encoded file content (excluding data URI scheme)
+                    "module": "GENERIC_OBJECT",
+                    "userId": "Technical"
+                };
+
+                
+        
+                // Create the attachment
+                oModel.create("/Attachment", oPayload2, {
+                    success: function (oData) {
+                        resolve(oData.attachmentId); // Return the attachment ID
+                        console.log("Attachment 2 uploaded successfully, Attachment ID: ", oData.attachmentId); 
                     },
                     error: function (oError) {
                         reject(oError); // Reject on error
@@ -265,77 +352,88 @@ function (Controller, DatePicker, MessageBox, Filter) {
             let LastContractDay = that.getView().byId("datePicker").getValue();
             let oDate = new Date(LastContractDay);
             let oDateInTicks = "/Date(" + oDate.getTime() + ")/";
-        
-
-            // let tLetter = that.getView().byId("terminationLetter").getValue();
-            // let sPay = that.getView().byId("calculationDocument").getValue();
 
             let payload = {};
 
-            if (resigDate == '') {
-                payload = {
-                    "__metadata": {
-                        "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
-                        "type" : "SFOData.cust_EmployeeTerminationForm"
-                    },
-                
-                    "cust_PositionRemain": PosR,
-                    "cust_RegrettedLoss": Regret,
-                    "cust_DirectReports": directReport,
-                    "cust_Email": email,
-                    "cust_EmployeeNumber": EmpNr,
-                    "cust_EmployeeName": EmpName,
-                    "cust_LastContractDay" : oDateInTicks,
-                    "cust_TerminationReason" : TermReason,
-                    "cust_EmployeeBackfill" : backFill,
+            if (that._oFileData){
+                try{
+                    const attachmentId = await that.uploadAttachment(that._oFileData.fileName, that._oFileData.fileContent);
+                    const attachmentId2 = await that.uploadAttachment2(that._oFileData2.fileName, that._oFileData2.fileContent);
                     
-                    // "cust_TerminationLetter" : {
-                    //     "__metadata" : {
-                    //         "uri" : "Attachment('"+that._sAttachmentId+"')"
-                    //   }
-                    //  }
-                    
-                };
-            } else {
-                payload = {
-                    "__metadata": {
-                        "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
-                        "type" : "SFOData.cust_EmployeeTerminationForm"
-                    },
-                
-                    "cust_PositionRemain": PosR,
-                    "cust_RegrettedLoss": Regret,
-                    "cust_DirectReports": directReport,
-                    "cust_Email": email,
-                    "cust_EmployeeNumber": EmpNr,
-                    "cust_EmployeeName": EmpName,
-                    "cust_LastContractDay" : oDateInTicks,
-                    "cust_TerminationReason" : TermReason,
-                    "cust_EmployeeBackfill" : backFill,
-                    "cust_ResignationDate" : rDateInTicks,
-                    
-                    // "cust_TerminationLetter" : {
-                    //     "__metadata" : {
-                    //         "uri" : "Attachment('"+that._sAttachmentId+"')"
-                    //   }
-                    //  }
-                    
-                };
-            }
+                    if (resigDate == '') {
+                        payload = {
+                            "__metadata": {
+                                "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
+                                "type" : "SFOData.cust_EmployeeTerminationForm"
+                            },
+                        
+                            "cust_PositionRemain": PosR,
+                            "cust_RegrettedLoss": Regret,
+                            "cust_DirectReports": directReport,
+                            "cust_Email": email,
+                            "cust_EmployeeNumber": EmpNr,
+                            "cust_EmployeeName": EmpName,
+                            "cust_LastContractDay" : oDateInTicks,
+                            "cust_TerminationReason" : TermReason,
+                            "cust_EmployeeBackfill" : backFill,
+                            "cust_TerminationLetterNav" : {
+                                 "__metadata" : {
+                                     "uri" : `Attachment('${attachmentId}')`
+                                }
+                            },
 
-            
+                            "cust_SeveranceDocumentNav" : {
+                                "__metadata" : {
+                                    "uri" : `Attachment('${attachmentId2}')`
+                                }
+                            }
+                        };
+
+                    } else {
+                        payload = {
+                            "__metadata": {
+                                "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
+                                "type" : "SFOData.cust_EmployeeTerminationForm"
+                            },
+                        
+                            "cust_PositionRemain": PosR,
+                            "cust_RegrettedLoss": Regret,
+                            "cust_DirectReports": directReport,
+                            "cust_Email": email,
+                            "cust_EmployeeNumber": EmpNr,
+                            "cust_EmployeeName": EmpName,
+                            "cust_LastContractDay" : oDateInTicks,
+                            "cust_TerminationReason" : TermReason,
+                            "cust_EmployeeBackfill" : backFill,
+                            "cust_ResignationDate" : rDateInTicks,
+                            
+                            "cust_TerminationLetterNav" : {
+                                "__metadata" : {
+                                    "uri" : `Attachment('${attachmentId}')`
+                               }
+                           },
+
+                           "cust_SeveranceDocumentNav" : {
+                                "__metadata" : {
+                                    "uri" : `Attachment('${attachmentId2}')`
+                                }
+                            }
+                            
+                        };
+
+                    }
 
             var oModel = that.getOwnerComponent().getModel();
             oModel.create("/upsert", payload, {
                 success: function() {
-                    sap.m.MessageBox.show("Record Added", {
+                    sap.m.MessageBox.show("Termination Form Submitted", {
                         icon: sap.m.MessageBox.Icon.SUCCESS,
                         title: "Success!"
                     });
 
                     // Clear the input fields after submission
-                    that.getView().byId("empnr").setText('');   // Clear employee number
-                    that.getView().byId("empname").setText(''); // Clear employee name
+                    // that.getView().byId("empnr").setText('');   // Clear employee number
+                    // that.getView().byId("empname").setText(''); // Clear employee name
                     
                     that.getView().byId("terminationLetter").setValue('')
                     that.getView().byId("calculationDocument").setValue('')
@@ -354,9 +452,20 @@ function (Controller, DatePicker, MessageBox, Filter) {
                     console.error(oError)
                 }
             });
-        
+    
         } 
-   
+            catch (error) 
+                 {
+                    console.error("Error uploading attachment:", error);
+                 }
+                 
+        }
+
+        else
+        {
+              console.error("No file data available for upload.");
+        }
+      }
     });
-});
-     // #endregion
+ });
+  // #endregion

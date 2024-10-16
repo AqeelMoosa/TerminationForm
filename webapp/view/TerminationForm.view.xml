@@ -92,12 +92,14 @@
                     placeholder="Choose a file"
                     width="100%"
                     change="onFileChange"/>
+					
 				<Label text="Calculation document severance pay" />
 				<unified:FileUploader
                     id="calculationDocument"
                     name="fileUpload"
                     placeholder="Choose a file"
-                    width="100%"/>
+                    width="100%"
+					change="onFileChange2"/>
 			</f:content>
 		</f:SimpleForm>
 
@@ -133,7 +135,7 @@
 
     <!-- Label and DatePicker -->
     			<Label text="Resignation Date" visible="false" id="resignationDatelbl" />
-    				<DatePicker id="resignationDatePicker" displayFormat="yyyy-MM-dd" value="{/selectedDate}"
+    				<DatePicker id="resignationDatePicker" displayFormat="yyyy-MM-dd" value="{/selectedDate}" visible="false"
                         valueFormat="yyyy-MM-dd"
                         placeholder="Select a date"/>
 
