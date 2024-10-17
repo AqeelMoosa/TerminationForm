@@ -126,15 +126,14 @@
 					<ComboBox id="terminationReasonComboBox" 
               			selectionChange=".onComboBoxSelectionChange"
 						placeholder="Select..."
-             			items="{
-                  				path: '/PickListValueV2',
-                  				filters: [{path: 'PickListV2_id', operator: 'EQ', value1: 'TerminationReason'}]
-              					}">
-        				<core:Item key="{externalCode}" text="{externalCode}" />
+						maxWidth="100%"
+             			items="{path: '/FOEventReason'}"
+						>
+        				<core:Item key="{externalCode}" text="{name}" />
     				</ComboBox>
 
     <!-- Label and DatePicker -->
-    			<Label text="Resignation Date" visible="false" id="resignationDatelbl" />
+    			<Label text="On which date did Sappi receive the resignation letter from the Employee?" visible="false" id="resignationDatelbl" />
     				<DatePicker id="resignationDatePicker" displayFormat="yyyy-MM-dd" value="{/selectedDate}" visible="false"
                         valueFormat="yyyy-MM-dd"
                         placeholder="Select a date"/>

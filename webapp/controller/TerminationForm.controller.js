@@ -16,9 +16,10 @@ function (Controller, DatePicker, MessageBox, Filter) {
             this.checkTeamMembersSize();
 
 
-
             var oView = this.getView();
 			this.oSF = oView.byId("searchField");
+
+            
 
             // const fileUploader = this.getView().byId("terminationLetter");
             // fileUploader.attachChange(this.onFileChange, this);
@@ -271,6 +272,7 @@ function (Controller, DatePicker, MessageBox, Filter) {
             });
         },
         // #endregion
+
         // #region On resignation reason
         onComboBoxSelectionChange: function (oEvent) {
             // Get the selected item from the ComboBox
@@ -294,7 +296,7 @@ function (Controller, DatePicker, MessageBox, Filter) {
                 );
                 
                 // Check if the selected key is "resignation"
-                if (sSelectedKey === "resignation") {
+                if (sSelectedKey === "TERVVSP") {
                     // Show label and input field
                     this.getView().byId("resignationDatelbl").setVisible(true);
                     this.getView().byId("resignationDatePicker").setVisible(true);
@@ -328,6 +330,102 @@ function (Controller, DatePicker, MessageBox, Filter) {
 			this.oSF.suggest();
 		},
         // #endregion
+       
+        // #region Backfill Functionality
+        UpdateEmpJob: function() {
+            const oDataModel = this.getOwnerComponent().getModel();
+            const BackFillCB = this.getView().byId("comboBox4")
+            
+            var oSelectedItem2 = BackFillCB.getSelectedItem();
+            var sSelectedKey2 = oSelectedItem2.getKey();
+
+            if (sSelectedKey2 == "No") {
+                oDataModel.read(`/EmpJob`, {
+                    urlParameters: {
+                        "$filter": `userId eq '${this._sUserId}'`
+                    },
+    
+                    success: (oData) => {
+                        const seqNum = oData.results[0].seqNumber
+                        const startDate = oData.results[0].startDate
+                        const pos = oData.results[0].position
+
+                        console.log("sequenceNumber:",seqNum)
+                        console.log("startdate:",startDate)
+                        console.log("position:", pos)
+                        
+    
+                        payload = {
+                            "__metadata": {
+                                "uri" : `EmpJob(seqNumber=${seqNum}L,startDate=datetime'${startDate}', userId='${emp}')`,
+                                "type": "SFOData.EmpJob"
+                            },
+    
+                            //Update JobInfo if no
+                        }
+    
+                        oDataModel.create("/upsert", payload, {
+                            success: function() {
+                                console.log("Job Info Updated!")
+                            }
+                        })
+                    }
+                })
+
+            } else if (sSelectedKey2 == "yes") {
+                oDataModel.read(`/EmpJob`, {
+                    urlParameters: {
+                        "$filter": `userId eq '${this._sUserId}'`
+                    },
+    
+                    success: (oData) => {
+                        const seqNum = oData.results[0].seqNumber
+                        const startDate = oData.results[0].startDate
+                        const pos = oData.results[0].position
+
+                        console.log("sequenceNumber:",seqNum)
+                        console.log("startdate:",startDate)
+                        console.log("position:", pos)
+    
+                        payload = {
+                            "__metadata": {
+                                "uri" : `EmpJob(seqNumber=${seqNum}L,startDate=datetime'${startDate}', userId='${emp}')`,
+                                "type": "SFOData.EmpJob"
+                            },
+    
+                            //Update jobInfo if yes
+                        }
+    
+                        oDataModel.create("/upsert", payload, {
+                            success: function() {
+                                console.log("Job Info Updated!")
+
+                                var payload2 = {
+                                    "__metadata": {
+                                        "uri": `Position(code='${pos}', effectiveStartDate=datetime'${startDate}')`,
+                                        "type" : "SFOData.Position"
+                                    },
+
+                                    //Update position if yes
+                                }
+
+                                oDataModel.create("/upsert", payload2, {
+                                    success: () =>{
+                                        console.log("Job Info and position updated!")
+                                    },
+
+                                    error() {
+                                        console.log("Error in Update")
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        },
+         // #endregion
+
 
 
 
