@@ -139,7 +139,7 @@
                         placeholder="Select a date"/>
 
 				<Label text="Should the position remain in EC/SAP?" />
-					<ComboBox id="comboBox1" placeholder="Select...">
+					<ComboBox id="comboBox1" placeholder="Select..." selectionChange="DeactivatePosition">
             			<items>
                				<core:Item key="Yes" text="Yes" />
                 			<core:Item key="No" text="No" />
@@ -147,7 +147,7 @@
        				 </ComboBox>
 
 				<Label text="Will this position be backfilled?"></Label>
-				<ComboBox id="comboBox4" placeholder="Select...">
+				<ComboBox id="comboBox4" placeholder="Select..." selectionChange="UpdateEmpJob" >
 					<items>
 						<core:Item key="Yes" text="Yes" />
                 		<core:Item key="No" text="No" />
