@@ -126,9 +126,7 @@
 					<ComboBox id="terminationReasonComboBox" 
               			selectionChange=".onComboBoxSelectionChange"
 						placeholder="Select..."
-						maxWidth="100%"
-             			items="{path: '/FOEventReason'}"
-						>
+						maxWidth="100%">
         				<core:Item key="{externalCode}" text="{name}" />
     				</ComboBox>
 
@@ -139,7 +137,7 @@
                         placeholder="Select a date"/>
 
 				<Label text="Should the position remain in EC/SAP?" />
-					<ComboBox id="comboBox1" placeholder="Select..." selectionChange="DeactivatePosition">
+					<ComboBox id="comboBox1" placeholder="Select...">
             			<items>
                				<core:Item key="Yes" text="Yes" />
                 			<core:Item key="No" text="No" />
@@ -147,7 +145,7 @@
        				 </ComboBox>
 
 				<Label text="Will this position be backfilled?"></Label>
-				<ComboBox id="comboBox4" placeholder="Select..." selectionChange="UpdateEmpJob" >
+				<ComboBox id="comboBox4" placeholder="Select...">
 					<items>
 						<core:Item key="Yes" text="Yes" />
                 		<core:Item key="No" text="No" />

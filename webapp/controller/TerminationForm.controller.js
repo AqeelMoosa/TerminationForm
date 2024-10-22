@@ -14,8 +14,6 @@ function (Controller, DatePicker, MessageBox, Filter) {
             this.getUserDetails()
 
             this.checkTeamMembersSize();
-
-
             var oView = this.getView();
 			this.oSF = oView.byId("searchField");
 
@@ -307,7 +305,7 @@ function (Controller, DatePicker, MessageBox, Filter) {
                 );
                 
                 // Check if the selected key is "resignation"
-                if (sSelectedKey === "TERVVSP") {
+                if (sSelectedKey === "TERVCOMP") {
                     // Show label and input field
                     this.getView().byId("resignationDatelbl").setVisible(true);
                     this.getView().byId("resignationDatePicker").setVisible(true);
@@ -349,11 +347,17 @@ function (Controller, DatePicker, MessageBox, Filter) {
 
             var selected = PositionStatus.getSelectedItem();
             var selectedKey = selected.getKey();
-            console.log(this._startDate)
-            var FormattedDate = this._startDate.match(/\((\d+)\)/)[1];
+
+            var oDate = new Date(this._startDate);
+            var year = oDate.getFullYear();
+            var month = String(oDate.getMonth() + 1).padStart(2, '0');
+            var day = String(oDate.getDate()).padStart(2, '0');
+            var hours = String(oDate.getHours()).padStart(2, '0');
+            var minutes = String(oDate.getMinutes()).padStart(2, '0');
+            var seconds = String(oDate.getSeconds()).padStart(2, '0');
+            var FormattedDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
             if (selectedKey == "No") {
-                console.log(this._startDate)
                 var payload3 = {
                     "__metadata": {
                         "uri": `Position(code='${this._pos}',effectiveStartDate=datetime'${FormattedDate}')`,
@@ -365,11 +369,11 @@ function (Controller, DatePicker, MessageBox, Filter) {
 
                 oDataModel.create("/upsert", payload3, {
                     success: () =>{
-                        console.log("Job Info and position updated!")
+                        console.log("Position Deactivated")
                     },
 
                     error() {
-                        console.log("Error in Update")
+                        console.log("Error in Deactivation")
                     }
                 })
 
@@ -377,6 +381,50 @@ function (Controller, DatePicker, MessageBox, Filter) {
         },
 
         // #endregion
+
+        // #region Filtering
+        onAfterRendering: function() {
+            const oComboBox = this.getView().byId("terminationReasonComboBox");
+            const oModel = this.getView().getModel();
+        
+            // Read FOEventReason entity set without a filter
+            oModel.read("/FOEventReason", {
+                success: (oData) => {
+                    // Log data to verify it was retrieved successfully
+                    console.log("FOEventReason data:", oData);
+        
+                    // Filter the data client-side based on the 'event' field
+                    const filteredData = oData.results.filter(item => item.event === "3680");
+        
+                    // Log filtered data to check if filtering worked
+                    console.log("Filtered FOEventReason data:", filteredData);
+        
+                    // If no data matches the filter, log a warning
+                    if (filteredData.length === 0) {
+                        console.warn("No FOEventReason records match the event '3680'");
+                    }
+        
+                    // Create a JSON model for the filtered data
+                    const oFilteredModel = new sap.ui.model.json.JSONModel({ items: filteredData });
+        
+                    // Set the model to the ComboBox
+                    oComboBox.setModel(oFilteredModel);
+        
+                    // Bind the items to the ComboBox (path to the items array in the JSON model)
+                    oComboBox.bindItems({
+                        path: "/items",
+                        template: new sap.ui.core.ListItem({
+                            key: "{externalCode}",
+                            text: "{name}"
+                        })
+                    });
+                },
+                error: (oError) => {
+                    console.error("Error fetching FOEventReason data", oError);
+                }
+            });
+        },
+        // #endRegion
 
 
        
@@ -399,7 +447,9 @@ function (Controller, DatePicker, MessageBox, Filter) {
                                 "type": "SFOData.EmpJob"
                             },
     
-                            //Update JobInfo if no
+                            //Update JobInfo if 
+                            //possible termination of employee class
+                            //
                     },
 
     
