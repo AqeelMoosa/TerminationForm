@@ -1,10 +1,9 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
-    "sap/m/DatePicker",
     "sap/m/MessageBox",
     "sap/ui/model/Filter"
 ],
-function (Controller, DatePicker, MessageBox, Filter) {
+function (Controller, MessageBox, Filter) {
     "use strict";
 
     return Controller.extend("terminationformapplication.terminationformapplication.controller.TerminationForm", {
@@ -13,26 +12,68 @@ function (Controller, DatePicker, MessageBox, Filter) {
             this.setUserId()
             this.getUserDetails()
 
+            this._wizard = this.byId("CreateProductWizard");
+			this._oNavContainer = this.byId("wizardNavContainer");
+			this._oWizardContentPage = this.byId("page");
+
+            console.log(MessageBox.Icon); // This should list all the available icons
+
+
+            // this.model = new JSONModel();
+            // this.model.setData({
+            //     productNameState: "Error",
+			// 	productWeightState: "Error"
+            // })
+
+            // this.getView().setModel(this.model);
+
+            
             this.checkTeamMembersSize();
             var oView = this.getView();
 			this.oSF = oView.byId("searchField");
 
-            const oDataModel = this.getOwnerComponent().getModel();
+            //  const oDataModel = this.getOwnerComponent().getModel();
 
-            oDataModel.read(`/EmpJob`, {
-                urlParameters: {
-                    "$filter": `userId eq '${this._sUserId}'`
-                },
+            // oDataModel.read(`/EmpJob`, {
+            //     urlParameters: {
+            //         "$filter": `userId eq '${this._sUserId}'`
+            //     },
 
-                success: (oData) => {
-                    this._seqNum = oData.results[0].seqNumber
-                    this._startDate = oData.results[0].startDate
-                    this._pos = oData.results[0].position
+            //     success: (oData) => {
+            //         this._seqNum = oData.results[0].seqNumber
+            //         this._startDate = oData.results[0].startDate
+            //         this._pos = oData.results[0].position
+                    
 
-                },
-            });
+            //     },
+            // });
 
         },
+
+        wizardCompletedHandler: function () {
+			this._oNavContainer.to(this.byId("wizardReviewPage"));
+		},
+
+        // VisibilityFunction: function () {
+        //     const ContractDay = this.getView().byId("datePicker")
+        //     const dateValue = ContractDay.getValue()
+
+        //     if (dateValue) {
+        //         this.getView().byId("termLetterlbl").setVisible(true)
+        //         this.getView().byId("terminationLetter").setVisible(true)
+        //         this.getView().byId("severanceDoc").setVisible(true)
+        //         this.getView().byId("calculationDocument").setVisible(true)
+        //         //this.getView().byId("docTitle").setText("Documents")
+
+        //     } else {
+        //         this.getView().byId("termLetterlbl").setVisible(false)
+        //         this.getView().byId("terminationLetter").setVisible(false)
+        //         this.getView().byId("severanceDoc").setVisible(false)
+        //         this.getView().byId("calculationDocument").setVisible(false)
+        //         this.getView().byId("docTitle").setVisible(false)
+
+        //     }
+        // },
 
         // #region Access and Change file to base 64
         onFileChange: function (oEvent) {
@@ -41,6 +82,7 @@ function (Controller, DatePicker, MessageBox, Filter) {
         
             // Get the FileUploader control explicitly by its ID
             const fileUploader = this.getView().byId("terminationLetter");
+            
         
             // Log the FileUploader control to verify it's correctly retrieved
             console.log("FileUploader control: ", fileUploader);
@@ -77,10 +119,10 @@ function (Controller, DatePicker, MessageBox, Filter) {
                         mimeType: sMimeType,
                         fileContent: sBase64Data
                     };
-        
+
                     console.log("File data processed and stored for upload.");
                 }.bind(this);  // Ensure the correct context of `this`
-        
+                
                 // Start reading the file as a data URL (base64)
                 fileReader.readAsDataURL(file);
             } else {
@@ -89,12 +131,29 @@ function (Controller, DatePicker, MessageBox, Filter) {
             }
         },
 
+        handleWizardCancel: function () {
+			this._handleMessageBoxOpen("Are you sure you want to cancel your report?", "warning");
+		},
+
+        // additionalInfoValidation: function () {
+		//     //var termLetter = this.getView().byId("terminationLetter").getValue();
+		// 	var CalcDoc = this.getView().byId("calculationDocument").getValue();
+
+        //     if (CalcDoc) {
+        //         //this._wizard.setCurrentStep(this.byId("DocumentsStep"));
+        //         this._wizard.validateStep(this.getView().byId("DocumentStep"));
+        //     }
+		// },
+
+
         onFileChange2: function (oEvent) {
             // Log the event to check what is passed
             console.log("FileChange Event: ", oEvent);
         
             // Get the FileUploader control explicitly by its ID
             const fileUploader2 = this.getView().byId("calculationDocument");
+            const SecondWiz = this.getView().byId("DocumentStep")
+            const docData = fileUploader2.getValue()
         
             // Log the FileUploader control to verify it's correctly retrieved
             console.log("FileUploader control: ", fileUploader2);
@@ -131,8 +190,28 @@ function (Controller, DatePicker, MessageBox, Filter) {
                         mimeType: pMimeType,
                         fileContent: pBase64Data
                     };
+
+                    if (docData) {
+                        SecondWiz.setValidated(true)
+                    } else {
+                        SecondWiz.setValidated(false)
+                    }
         
                     console.log("File data processed and stored for upload.");
+                    this.getView().byId("lblTerm").setVisible(true)
+                    this.getView().byId("remainlbl").setVisible(true)
+                    this.getView().byId("backfilllbl").setVisible(true)
+                    this.getView().byId("losslbl").setVisible(true)
+                    this.getView().byId("emaillbl").setVisible(true)
+
+                    this.getView().byId("terminationReasonComboBox").setVisible(true)
+                    this.getView().byId("comboBox1").setVisible(true)
+                    this.getView().byId("comboBox4").setVisible(true)
+                    this.getView().byId("comboBox2").setVisible(true)
+                    this.getView().byId("Email").setVisible(true)
+                    //this.getView().byId("addInfo").setText("Additional Infomation")
+
+
                 }.bind(this);  // Ensure the correct context of `this`
         
                 // Start reading the file as a data URL (base64)
@@ -149,25 +228,72 @@ function (Controller, DatePicker, MessageBox, Filter) {
             const that = this;
             const oModel = this.getOwnerComponent().getModel();
             const sUserId = this._sUserId;  // Assuming user ID is available in the controller context
+            //const oWizard = this.getView().byId("CreateProductWizard")
 
             // Read User entity to get the teamMembersSize property
             oModel.read(`/User('${sUserId}')`, {
                 success: function (oData) {
                     const iTeamMembersSize = oData.teamMembersSize;
+                    console.log(iTeamMembersSize)
+                   // const email = that.getView().byId("Email")
+                    //const emailValue = email.getValue()
+
 
                     // Check if teamMembersSize is 1 or greater
                     if (iTeamMembersSize >= 1) {
                         // Show the label and textbox if condition is met
-                        that.getView().byId("directReports").setVisible(true);
+                        that.getView().byId("directReplbl").setVisible(true);
+                        that.getView().byId("searchField").setVisible(true);
+                        that.getView().byId("OptionalInfoStep").setVisible(true)
+
                     } else {
                         // Hide the label and textbox otherwise
-                        that.getView().byId("directReports").setVisible(false);
+                        that.getView().byId("directReplbl").setVisible(false);
+                        that.getView().byId("searchField").setVisible(false);
+                        that.getView().byId("OptionalInfoStep").setVisible(true).setValidated(true)
+                        that.getView().byId("NoDirectReports").setText("Employee has no Direct Reports").setVisible(true)
                     }
                 },
                 error: function (oError) {
                     console.error("Error fetching User entity:", oError);
                 }
             });
+        },
+
+        // #endregion
+
+        // #region Validation Checks
+        ValidationDateCheck: function() {
+            const date1 = this.getView().byId("datePicker").getDateValue()
+            const firstWiz = this.getView().byId("EmployeeDetailsStep")
+
+            if (date1) {
+                firstWiz.setValidated(true)
+            } else {
+                firstWiz.setValidated(false)
+            }
+        },
+
+        EmailValidation: function() {
+            const ThirdWiz = this.getView().byId("AdditionalInfoStep")
+            const emailInput = this.getView().byId("Email").getValue()
+
+            if (emailInput) {
+                ThirdWiz.setValidated(true)
+            } else {
+                ThirdWiz.setValidated(false)
+            }
+        },
+
+        DirectReportsValidation: function() {
+            const fourthWiz = this.getView().byId("OptionalInfoStep")
+            const directR = this.getView().byId("searchField").getValue()
+
+            if (directR) {
+                fourthWiz.setValidated(true)
+            } else {
+                fourthWiz.setValidated(false)
+            }
         },
         // #endregion
 
@@ -273,7 +399,6 @@ function (Controller, DatePicker, MessageBox, Filter) {
                     const sFullname = oData.defaultFullName;
                     name.setText(`${sFullname}`);
                     empNr.setText(`${that._sUserId}`)
-                    oUsername.setText(`${sFullname} (${that._sUserId})`);
                 },
                 error: function (oError) {
                     console.error(oError);
@@ -283,7 +408,7 @@ function (Controller, DatePicker, MessageBox, Filter) {
         // #endregion
 
         // #region On resignation reason
-        onComboBoxSelectionChange: function (oEvent) {
+        onComboBoxSelectionChange: function () {
             // Get the selected item from the ComboBox
             var oComboBox = this.getView().byId("terminationReasonComboBox");
             var oSelectedItem = oComboBox.getSelectedItem();
@@ -341,44 +466,44 @@ function (Controller, DatePicker, MessageBox, Filter) {
         // #endregion
 
         // #region Deactivate Position
-        DeactivatePosition: function () {
-            const oDataModel = this.getOwnerComponent().getModel();
-            const PositionStatus = this.getView().byId("comboBox1")
+        // DeactivatePosition: function () {
+        //     const oDataModel = this.getOwnerComponent().getModel();
+        //     const PositionStatus = this.getView().byId("comboBox1")
 
-            var selected = PositionStatus.getSelectedItem();
-            var selectedKey = selected.getKey();
+        //     var selected = PositionStatus.getSelectedItem();
+        //     var selectedKey = selected.getKey();
 
-            var oDate = new Date(this._startDate);
-            var year = oDate.getFullYear();
-            var month = String(oDate.getMonth() + 1).padStart(2, '0');
-            var day = String(oDate.getDate()).padStart(2, '0');
-            var hours = String(oDate.getHours()).padStart(2, '0');
-            var minutes = String(oDate.getMinutes()).padStart(2, '0');
-            var seconds = String(oDate.getSeconds()).padStart(2, '0');
-            var FormattedDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        //     var oDate = new Date(this._startDate);
+        //     var year = oDate.getFullYear();
+        //     var month = String(oDate.getMonth() + 1).padStart(2, '0');
+        //     var day = String(oDate.getDate()).padStart(2, '0');
+        //     var hours = String(oDate.getHours()).padStart(2, '0');
+        //     var minutes = String(oDate.getMinutes()).padStart(2, '0');
+        //     var seconds = String(oDate.getSeconds()).padStart(2, '0');
+        //     var FormattedDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
-            if (selectedKey == "No") {
-                var payload3 = {
-                    "__metadata": {
-                        "uri": `Position(code='${this._pos}',effectiveStartDate=datetime'${FormattedDate}')`,
-                        "type" : "SFOData.Position"
-                    },
+        //     if (selectedKey == "No") {
+        //         var payload3 = {
+        //             "__metadata": {
+        //                 "uri": `Position(code='${this._pos}',effectiveStartDate=datetime'${FormattedDate}')`,
+        //                 "type" : "SFOData.Position"
+        //             },
 
-                    "effectiveStatus": "I"
-                }
+        //             "effectiveStatus": "I"
+        //         }
 
-                oDataModel.create("/upsert", payload3, {
-                    success: () =>{
-                        console.log("Position Deactivated")
-                    },
+        //         oDataModel.create("/upsert", payload3, {
+        //             success: () =>{
+        //                 console.log("Position Deactivated")
+        //             },
 
-                    error() {
-                        console.log("Error in Deactivation")
-                    }
-                })
+        //             error() {
+        //                 console.log("Error in Deactivation")
+        //             }
+        //         })
 
-            }
-        },
+        //     }
+        // },
 
         // #endregion
 
@@ -429,82 +554,82 @@ function (Controller, DatePicker, MessageBox, Filter) {
 
        
         // #region Backfill Functionality
-        UpdateEmpJob: function() {
-            const oDataModel = this.getOwnerComponent().getModel();
-            const BackFillCB = this.getView().byId("comboBox4")
+        // UpdateEmpJob: function() {
+        //     const oDataModel = this.getOwnerComponent().getModel();
+        //     const BackFillCB = this.getView().byId("comboBox4")
 
-            var oSelectedItem2 = BackFillCB.getSelectedItem();
-            var sSelectedKey2 = oSelectedItem2.getKey();
+        //     var oSelectedItem2 = BackFillCB.getSelectedItem();
+        //     var sSelectedKey2 = oSelectedItem2.getKey();
 
-            if (sSelectedKey2 == "No") {
+        //     if (sSelectedKey2 == "No") {
 
-                    console.log("sequenceNumber:",this._seqNum)
-                    console.log("startdate:",this._startDate)
+        //             console.log("sequenceNumber:",this._seqNum)
+        //             console.log("startdate:",this._startDate)
     
-                    payload = {
-                            "__metadata": {
-                                "uri" : `EmpJob(seqNumber=${this._seqNum}L,startDate=datetime'${this._startDate}', userId='${this._sUserId}')`,
-                                "type": "SFOData.EmpJob"
-                            },
+        //             payload = {
+        //                     "__metadata": {
+        //                         "uri" : `EmpJob(seqNumber=${this._seqNum}L,startDate=datetime'${this._startDate}', userId='${this._sUserId}')`,
+        //                         "type": "SFOData.EmpJob"
+        //                     },
     
-                            //Update JobInfo if 
-                            //possible termination of employee class
-                            //
-                    },
+        //                     //Update JobInfo if 
+        //                     //possible termination of employee class
+        //                     //
+        //             },
 
     
-                    oDataModel.create("/upsert", payload, {
-                            success: function() {
-                                console.log("Job Info Updated!")
-                            }
-                    })
+        //             oDataModel.create("/upsert", payload, {
+        //                     success: function() {
+        //                         console.log("Job Info Updated!")
+        //                     }
+        //             })
 
 
-            } 
+        //     } 
             
-            else if (sSelectedKey2 == "Yes") {
+        //     else if (sSelectedKey2 == "Yes") {
                     
-                console.log("sequenceNumber:",this._seqNum)
-                console.log("startdate:", this._startDate)
-                console.log("position:", this._pos)
+        //         console.log("sequenceNumber:",this._seqNum)
+        //         console.log("startdate:", this._startDate)
+        //         console.log("position:", this._pos)
 
     
-                payload = {
-                     "__metadata": {
-                     "uri" : `EmpJob(seqNumber=${this._seqNum}L,startDate=datetime'${this._startDate}', userId='${this._sUserId}')`,
-                     "type": "SFOData.EmpJob"
-                        },
+        //         payload = {
+        //              "__metadata": {
+        //              "uri" : `EmpJob(seqNumber=${this._seqNum}L,startDate=datetime'${this._startDate}', userId='${this._sUserId}')`,
+        //              "type": "SFOData.EmpJob"
+        //                 },
     
-                            //Update jobInfo if yes
+        //                     //Update jobInfo if yes
                         
-                    },
+        //             },
 
-                    oDataModel.create("/upsert", payload, {
-                            success: function() {
-                                console.log("Job Info Updated!")
+        //             oDataModel.create("/upsert", payload, {
+        //                     success: function() {
+        //                         console.log("Job Info Updated!")
 
-                                var payload2 = {
-                                    "__metadata": {
-                                        "uri": `Position(code='${this._pos}', effectiveStartDate=datetime'${this._startDate}')`,
-                                        "type" : "SFOData.Position"
-                                    },
+        //                         var payload2 = {
+        //                             "__metadata": {
+        //                                 "uri": `Position(code='${this._pos}', effectiveStartDate=datetime'${this._startDate}')`,
+        //                                 "type" : "SFOData.Position"
+        //                             },
 
-                                    //Update position if yes
-                                }
+        //                             //Update position if yes
+        //                         }
 
-                    oDataModel.create("/upsert", payload2, {
-                                    success: () =>{
-                                        console.log("Job Info and position updated!")
-                                    },
+        //             oDataModel.create("/upsert", payload2, {
+        //                             success: () =>{
+        //                                 console.log("Job Info and position updated!")
+        //                             },
 
-                                    error() {
-                                        console.log("Error in Update")
-                                    }
-                                })
-                            }
-                        })
-                    }
-            },
+        //                             error() {
+        //                                 console.log("Error in Update")
+        //                             }
+        //                         })
+        //                     }
+        //                 })
+        //             }
+        //     },
          // #endregion
 
 

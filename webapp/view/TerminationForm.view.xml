@@ -1,208 +1,126 @@
 <mvc:View controllerName="terminationformapplication.terminationformapplication.controller.TerminationForm"
-    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
+    xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:f="sap.ui.layout.form"
     xmlns:core="sap.ui.core"
     xmlns:unified="sap.ui.unified"
-    xmlns:l="sap.ui.layout">
-    <Page id="page" title="{i18n>title}">
-	
-				<HBox class="header-panel">
-               		<HBox/>
-                		<HBox id="hbxProcessHeading" class="header-container username-container">
-							<Title text="Termination Sappi Employee" level="H2"/>
-							<Button 
-                        		text="Submit Termination Form"
-                        		press="submitForm"
-                       			icon="sap-icon://accept"
-                        		width="200px" 
-                       			class="customButton"
-                        		type="Accept"> 
-                        <layoutData>
-                            <FlexItemData growFactor="1" />
-                        </layoutData>
-				    </Button>
-						</HBox>
-                	<HBox id="hbxUsername" class="username-container">
-						<Text id="Username"></Text>
-					</HBox>
-    			</HBox>
-			
+    xmlns:l="sap.ui.layout"
+	height="100%">
 
-    	<VBox class="sapUiSmallMargin" id="TerminationDetails">
-		<f:SimpleForm id="EmployeeDetails"
-			editable="true"
-			layout="ResponsiveGridLayout"
-			title="Employee Details"
-			labelSpanXL="4"
-			labelSpanL="4"
-			labelSpanM="12"
-			labelSpanS="12"
-			adjustLabelSpan="false"
-			emptySpanXL="0"
-			emptySpanL="0"
-			emptySpanM="0"
-			emptySpanS="0"
-			columnsXL="2"
-			columnsL="2"
-			columnsM="1"
-			singleContainerFullSize="false" >
-			<f:content>
-				<Label text="PERS.NO" />
+	<NavContainer id="wizardNavContainer">
+		<pages>
+			<Page id="page" showHeader="false">
+				<content>
+						<Wizard id="CreateProductWizard" class="sapUiResponsivePadding--header sapUiResponsivePadding--content" complete="wizardCompletedHandler">
+								<WizardStep id="EmployeeDetailsStep" title="Employee Detail's" validated="false">
+									<f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+									<Label text="PERS.NO" />
+									<Text id="empnr"/>
 
-				<Text id="empnr"/>
+									<Label text="Employee Name" />
+									<Text id="empname"></Text>
 
-				<Label text="Employee Name" />
-
-				<Text id="empname"></Text>
-
-				<Label text="Last Contract Day" />
-				  <DatePicker
-                        id="datePicker"
-                        value="{/selectedDate}"
-                        displayFormat="yyyy-MM-dd"
-                        valueFormat="yyyy-MM-dd"
-                        placeholder="Select a date"/>
-			    </f:content>
-		</f:SimpleForm>
-
-
-		<f:SimpleForm id="Documents"
-			editable="true"
-			layout="ResponsiveGridLayout"
-			title="Documents to be attached"
-			labelSpanXL="4"
-			labelSpanL="4"
-			labelSpanM="12"
-			labelSpanS="12"
-			adjustLabelSpan="false"
-			emptySpanXL="0"
-			emptySpanL="0"
-			emptySpanM="0"
-			emptySpanS="0"
-			columnsXL="2"
-			columnsL="2"
-			columnsM="1"
-			singleContainerFullSize="false">
-			<f:content>
-				<Label text="Termination Letter" />
-				<unified:FileUploader
-                    id="terminationLetter"
-                    name="fileUpload"
-                    placeholder="Choose a file"
-                    width="100%"
-                    change="onFileChange"/>
+									<Label text="Last Contract Day" />
+									 <DatePicker
+										id="datePicker"
+										value="{/selectedDate}"
+										displayFormat="yyyy-MM-dd"
+										valueFormat="yyyy-MM-dd"
+										placeholder="Select a date"
+										change="ValidationDateCheck"/>
+										</f:SimpleForm>
+								</WizardStep>
+								
+								<WizardStep id="DocumentStep" title="Documents Center" validated="false">
+									<Label text="Termination Letter" id="termLetterlbl"/>
+										<unified:FileUploader
+											id="terminationLetter"
+											name="fileUpload"
+											placeholder="Choose a file"
+											width="100%"
+											change="onFileChange"
+											/>
 					
-				<Label text="Calculation document severance pay" />
-				<unified:FileUploader
-                    id="calculationDocument"
-                    name="fileUpload"
-                    placeholder="Choose a file"
-                    width="100%"
-					change="onFileChange2"/>
-			</f:content>
-		</f:SimpleForm>
+									<Label text="Calculation document severance pay" id="severanceDoc"/>
+										<unified:FileUploader
+											id="calculationDocument"
+											name="fileUpload"
+											placeholder="Choose a file"
+											width="100%"
+											change="onFileChange2"
+											/>
+								</WizardStep>
 
+								<WizardStep id="AdditionalInfoStep" validated="false" title="Additional Information">
+									<f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+										<Label text="What is the reason for termination?" id="lblTerm"/>
+											<ComboBox id="terminationReasonComboBox" 
+												selectionChange="onComboBoxSelectionChange"
+												placeholder="Select..."
+												maxWidth="100%">
+												<core:Item key="{externalCode}" text="{name}" />
+											</ComboBox>
 
-        <f:SimpleForm id="AddtionalInfo"
-			editable="true"
-			layout="ResponsiveGridLayout"
-			title="Addtional Infomation"
-			labelSpanXL="4"
-			labelSpanL="4"
-			labelSpanM="12"
-			labelSpanS="12"
-			adjustLabelSpan="false"
-			emptySpanXL="0"
-			emptySpanL="0"
-			emptySpanM="0"
-			emptySpanS="0"
-			columnsXL="2"
-			columnsL="2"
-			columnsM="1"
-			singleContainerFullSize="false" >
-			<f:content>
-				<Label text="What is the reason for termination" />
-					<ComboBox id="terminationReasonComboBox" 
-              			selectionChange=".onComboBoxSelectionChange"
-						placeholder="Select..."
-						maxWidth="100%">
-        				<core:Item key="{externalCode}" text="{name}" />
-    				</ComboBox>
+    									<Label text="On which date did Sappi receive the resignation letter from the Employee?" id="resignationDatelbl" visible="false"/>
+											<DatePicker id="resignationDatePicker" displayFormat="yyyy-MM-dd" value="{/selectedDate}" visible="false"
+												valueFormat="yyyy-MM-dd"
+												placeholder="Select a date"/>
 
-    <!-- Label and DatePicker -->
-    			<Label text="On which date did Sappi receive the resignation letter from the Employee?" visible="false" id="resignationDatelbl" />
-    				<DatePicker id="resignationDatePicker" displayFormat="yyyy-MM-dd" value="{/selectedDate}" visible="false"
-                        valueFormat="yyyy-MM-dd"
-                        placeholder="Select a date"/>
+										<Label text="Should the position remain in EC/SAP?" id="remainlbl" />
+											<ComboBox id="comboBox1" placeholder="Select..." >
+												<items>
+													<core:Item key="Yes" text="Yes" />
+													<core:Item key="No" text="No" />
+												</items>
+											</ComboBox>
 
-				<Label text="Should the position remain in EC/SAP?" />
-					<ComboBox id="comboBox1" placeholder="Select...">
-            			<items>
-               				<core:Item key="Yes" text="Yes" />
-                			<core:Item key="No" text="No" />
-            			</items>
-       				 </ComboBox>
+										<Label text="Will this position be backfilled?" id="backfilllbl" />
+											<ComboBox id="comboBox4" placeholder="Select..." >
+												<items>
+													<core:Item key="Yes" text="Yes" />
+													<core:Item key="No" text="No" />
+												</items>
+											</ComboBox>
 
-				<Label text="Will this position be backfilled?"></Label>
-				<ComboBox id="comboBox4" placeholder="Select...">
-					<items>
-						<core:Item key="Yes" text="Yes" />
-                		<core:Item key="No" text="No" />
-					</items>
-				</ComboBox>
+										<Label text="Regretted loss?" tooltip="EU defintion: does the departure have a negative" id="losslbl" />
+											<ComboBox id="comboBox2" placeholder="Select..." >
+												<items>
+													<core:Item key="Yes" text="Yes" />
+													<core:Item key="No" text="No" />
+												</items>
+											</ComboBox>
 
-				<Label text="Regretted loss? EU defintion: does the departure have a negative" />
-					<ComboBox id="comboBox2" placeholder="Select...">
-           		 		<items>
-               				<core:Item key="Yes" text="Yes" />
-               				<core:Item key="No" text="No" />
-           				</items>
-        			</ComboBox>
+										<Label text="Personal email address" id="emaillbl" />
+											<Input placeholder="example123@gmail.com" id="Email" change="EmailValidation"/>
+									</f:SimpleForm>
+								</WizardStep>
 
+								<WizardStep id="OptionalInfoStep" validated="false" activate="optionalStepActivation" title="Direct Reports" visible="true">
+									<Label text="If employee had direct reports, to who should they be moved?" id="directReplbl" visible="true" />
+									<Label text="" id="NoDirectReports" visible="false" />
+										<SearchField visible="true"
+											id="searchField"
+											width="100%"
+											placeholder="Search for..."
+											enableSuggestions="true"
+											suggest=".onSuggest"
+											change="DirectReportsValidation"
+											suggestionItems="{
+												path: 'UserModel>/'
+											}">
+												<SuggestionItem text="{UserModel>name} ({UserModel>EmpNr})" description="({path:'UserModel>EmpNr'})" key="{UserModel>EmpNr}" />
+										</SearchField>
+								</WizardStep>
+						</Wizard>
 
-				<Label text="Personal email address" />
-				<Input value="" placeholder="example123@gmail.com" id="Email"/>
-
-
-			    </f:content>
-			</f:SimpleForm>
-
-			<f:SimpleForm id="directReports"
-			editable="true"
-			layout="ResponsiveGridLayout"
-			title="DirectReports"
-			labelSpanXL="4"
-			labelSpanL="4"
-			labelSpanM="12"
-			labelSpanS="12"
-			adjustLabelSpan="false"
-			emptySpanXL="0"
-			emptySpanL="0"
-			emptySpanM="0"
-			emptySpanS="0"
-			columnsXL="2"
-			columnsL="2"
-			columnsM="1"
-			singleContainerFullSize="false" >
-			<f:content>
-
-				<Label text="If employee had direct reports, to who should they be moved?" id="directReplbl"/>
-					<SearchField
-						id="searchField"
-						width="50%"
-						placeholder="Search for..."
-						enableSuggestions="true"
-						suggest=".onSuggest"
-						suggestionItems="{
-							path: 'UserModel>/'
-							
-						}">
-			<SuggestionItem text="{UserModel>name}" description="({path:'UserModel>EmpNr'})" key="{UserModel>EmpNr}" />
-		</SearchField>
-
-			    </f:content>
-			</f:SimpleForm>
-		</VBox>
-	</Page>
+				</content>
+					<footer>
+							<OverflowToolbar>
+							<ToolbarSpacer/>
+							<Button text="Cancel" press="handleWizardCancel"/>
+						</OverflowToolbar>
+					</footer>
+				</Page>
+		</pages>
+	</NavContainer>
 </mvc:View>
