@@ -19,14 +19,8 @@ function (Controller, MessageBox, Filter) {
             console.log(MessageBox.Icon); // This should list all the available icons
 
 
-            // this.model = new JSONModel();
-            // this.model.setData({
-            //     productNameState: "Error",
-			// 	productWeightState: "Error"
-            // })
-
-            // this.getView().setModel(this.model);
-
+            const oReviewModel = new sap.ui.model.json.JSONModel();
+            this.getView().setModel(oReviewModel, "reviewModel");
             
             this.checkTeamMembersSize();
             var oView = this.getView();
@@ -50,9 +44,113 @@ function (Controller, MessageBox, Filter) {
 
         },
 
+        // #region View Review Page
         wizardCompletedHandler: function () {
-			this._oNavContainer.to(this.byId("wizardReviewPage"));
+            const oView = this.getView();
+            const oTerminationLetterUploader = oView.byId("terminationLetter");
+            const oSeveranceDocUploader = oView.byId("calculationDocument");
+            var oComboBox = this.getView().byId("terminationReasonComboBox");
+            var oSelectedItem = oComboBox.getSelectedItem();
+            var sSelectedKey = oSelectedItem.getKey();
+
+            if (sSelectedKey === "TERVCOMP"){
+                const oData = {
+                    persNo: oView.byId("empnr").getText(),
+                    employeeName: oView.byId("empname").getText(),
+                    selectedDate: oView.byId("datePicker").getValue(),
+                    uploadedDocuments : [
+                        {
+                            fileName: oTerminationLetterUploader.getValue(),
+                            type: "Termination Letter"
+                        },
+                        {
+                            fileName: oSeveranceDocUploader.getValue(),
+                            type: "Severance Pay Document"
+                        }
+                    ],
+    
+                    termReas: oView.byId("terminationReasonComboBox").getSelectedItem().getText(),
+                    resigDate: oView.byId("resignationDatePicker").getValue(),
+                    posRemain: oView.byId("comboBox1").getSelectedItem().getText(),
+                    backFill: oView.byId("comboBox4").getSelectedItem().getText(),
+                    RegLoss: oView.byId("comboBox2").getSelectedItem().getText(),
+                    PersEmail: oView.byId("Email").getValue(),
+                    DirectRep: oView.byId("searchField").getValue()
+                };
+
+                oView.byId("resignationDate").setVisible(true)
+                oView.byId("resigDatePicker").setVisible(true)
+                oView.getModel("reviewModel").setData(oData);
+                oView.getModel("reviewModel").refresh();
+                oView.byId("wizardNavContainer").to(oView.byId("ReviewPage"));
+
+            } else {
+                const oData = {
+                    persNo: oView.byId("empnr").getText(),
+                    employeeName: oView.byId("empname").getText(),
+                    selectedDate: oView.byId("datePicker").getValue(),
+                    uploadedDocuments : [
+                        {
+                            fileName: oTerminationLetterUploader.getValue(),
+                            type: "Termination Letter"
+                        },
+                        {
+                            fileName: oSeveranceDocUploader.getValue(),
+                            type: "Severance Pay Document"
+                        }
+                    ],
+    
+                    termReas: oView.byId("terminationReasonComboBox").getSelectedItem().getText(),
+                    posRemain: oView.byId("comboBox1").getSelectedItem().getText(),
+                    backFill: oView.byId("comboBox4").getSelectedItem().getText(),
+                    RegLoss: oView.byId("comboBox2").getSelectedItem().getText(),
+                    PersEmail: oView.byId("Email").getValue(),
+                    DirectRep: oView.byId("searchField").getValue()
+                };
+                
+                oView.byId("resignationDate").setVisible(false)
+                oView.byId("resigDatePicker").setVisible(false)
+                oView.getModel("reviewModel").setData(oData);
+                oView.getModel("reviewModel").refresh();
+                oView.byId("wizardNavContainer").to(oView.byId("ReviewPage"));
+            }
+
+
+            
 		},
+
+        backToWizardContent: function () {
+			this._oNavContainer.backToPage(this._oWizardContentPage.getId());
+		},
+
+        _handleNavigationToStep: function (iStepNumber) {
+			var fnAfterNavigate = function () {
+				this._wizard.goToStep(this._wizard.getSteps()[iStepNumber]);
+				this._oNavContainer.detachAfterNavigate(fnAfterNavigate);
+			}.bind(this);
+
+			this._oNavContainer.attachAfterNavigate(fnAfterNavigate);
+			this.backToWizardContent();
+		},
+
+        editStepOne: function () {
+			this._handleNavigationToStep(0);
+		},
+
+        editStepTwo: function () {
+			this._handleNavigationToStep(1);
+
+		},
+
+		editStepThree: function () {
+			this._handleNavigationToStep(2);
+		},
+
+		editStepFour: function () {
+			this._handleNavigationToStep(3);
+		},
+
+         // #endregion
 
         // VisibilityFunction: function () {
         //     const ContractDay = this.getView().byId("datePicker")
@@ -245,6 +343,7 @@ function (Controller, MessageBox, Filter) {
                         that.getView().byId("directReplbl").setVisible(true);
                         that.getView().byId("searchField").setVisible(true);
                         that.getView().byId("OptionalInfoStep").setVisible(true)
+                        that.getView().byId("DirectReportsReview").setVisible(true)
 
                     } else {
                         // Hide the label and textbox otherwise
@@ -252,6 +351,7 @@ function (Controller, MessageBox, Filter) {
                         that.getView().byId("searchField").setVisible(false);
                         that.getView().byId("OptionalInfoStep").setVisible(true).setValidated(true)
                         that.getView().byId("NoDirectReports").setText("Employee has no Direct Reports").setVisible(true)
+                        that.getView().byId("DirectReportsReview").setVisible(false)
                     }
                 },
                 error: function (oError) {
@@ -739,17 +839,17 @@ function (Controller, MessageBox, Filter) {
                     // that.getView().byId("empnr").setText('');   // Clear employee number
                     // that.getView().byId("empname").setText(''); // Clear employee name
                     
-                    that.getView().byId("terminationLetter").setValue('')
-                    that.getView().byId("calculationDocument").setValue('')
-                    that.getView().byId("comboBox1").setValue('');
-                    that.getView().byId("comboBox2").setValue('');
-                    that.getView().byId("searchField").setValue('');
-                    that.getView().byId("Email").setValue('');
-                    that.getView().byId("terminationReasonComboBox").setValue('');
-                    that.getView().byId("comboBox4").setValue('');
+                    // that.getView().byId("terminationLetter").setValue('')
+                    // that.getView().byId("calculationDocument").setValue('')
+                    // that.getView().byId("comboBox1").setValue('');
+                    // that.getView().byId("comboBox2").setValue('');
+                    // that.getView().byId("searchField").setValue('');
+                    // that.getView().byId("Email").setValue('');
+                    // that.getView().byId("terminationReasonComboBox").setValue('');
+                    // that.getView().byId("comboBox4").setValue('');
 
-                    that.getView().byId("resignationDatePicker").setValue('')
-                    that.getView().byId("datePicker").setValue(''); // Clear datepicker
+                    // that.getView().byId("resignationDatePicker").setValue('')
+                    // that.getView().byId("datePicker").setValue(''); // Clear datepicker
                 
                 },
                 error: function (oError){

@@ -121,6 +121,70 @@
 						</OverflowToolbar>
 					</footer>
 				</Page>
+
+				<Page id="ReviewPage" title = "Review Termination Form" showHeader="true"> 
+						<Button 
+                        		text="Submit Termination Form"
+                        		press="submitForm"
+                       			icon="sap-icon://accept"
+                        		width="200px" 
+                       			class="customButton"
+                        		type="Accept"/>  
+					<content>
+						 <f:SimpleForm editable="false" layout="ResponsiveGridLayout" title="1. Employee Detail's">
+							<Label text="PERS.NO"/>
+							<Text text="{reviewModel>/persNo}"/>
+
+							<Label text="Employee Name" />
+                    		<Text text="{reviewModel>/employeeName}" />
+
+							<Label text="Last Contract Day" />
+                    		<Text text="{reviewModel>/selectedDate}" />
+
+							<Link press="editStepOne" text="Edit" />
+						 </f:SimpleForm>
+
+						<f:SimpleForm editable="false" layout="ResponsiveGridLayout" title="2. Documents Center">
+							<Label text="Uploaded Documents"/>
+								<List items="{reviewModel>/uploadedDocuments}">
+    								<StandardListItem title="{reviewModel>type}" description="{reviewModel>fileName}" />
+								</List>
+
+								<Link press="editStepTwo" text="Edit" />
+						</f:SimpleForm>
+
+						<f:SimpleForm editable="false" layout="ResponsiveGridLayout" title="3. Additional Information">
+							<Label text="Termination Reason"/>
+							<Text text="{reviewModel>/termReas}" />
+
+							<Label text="Resignation Date" visible="true" id="resignationDate"/>
+							<Text text="{reviewModel>/resigDate}" id="resigDatePicker" visible="true"/>
+
+							<Label text="Position Remain"/>
+							<Text text="{reviewModel>/posRemain}" />
+
+							<Label text="Backfilled"/>
+							<Text text="{reviewModel>/backFill}" />
+
+							<Label text="Regretted Loss"/>
+							<Text text="{reviewModel>/RegLoss}" />
+
+							<Label text="Personal Email Address"/>
+							<Text text="{reviewModel>/PersEmail}" />
+
+							<Link press="editStepThree" text="Edit" />
+						</f:SimpleForm>
+
+						<f:SimpleForm editable="false" layout="ResponsiveGridLayout" title="4. Direct Reports" visible="true" id="DirectReportsReview">
+							<Label text="Direct Reports"/>
+							<Text text="{reviewModel>/DirectRep}"/>
+
+							<Link press="editStepFour" text="Edit" />
+						</f:SimpleForm>
+
+					</content>
+				</Page>
+					
 		</pages>
 	</NavContainer>
 </mvc:View>
