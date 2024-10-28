@@ -4,24 +4,24 @@
     xmlns:f="sap.ui.layout.form"
     xmlns:core="sap.ui.core"
     xmlns:unified="sap.ui.unified"
-    xmlns:l="sap.ui.layout"
-	height="100%">
+    xmlns:l="sap.ui.layout">
 
 	<NavContainer id="wizardNavContainer">
 		<pages>
-			<Page id="page" showHeader="false">
+			<Page id="page" showHeader="false" >
 				<content>
-						<Wizard id="CreateProductWizard" class="sapUiResponsivePadding--header sapUiResponsivePadding--content" complete="wizardCompletedHandler">
-								<WizardStep id="EmployeeDetailsStep" title="Employee Detail's" validated="false">
+						<Wizard id="CreateProductWizard" class="sapUiResponsivePadding--header sapUiResponsivePadding--content" complete="wizardCompletedHandler" height="auto">
+								<WizardStep id="EmployeeDetailsStep" title="Employee Detail's" validated="false" class="centeredFormContent">
 									<f:SimpleForm editable="true" layout="ResponsiveGridLayout">
 									<Label text="PERS.NO" />
-									<Text id="empnr"/>
-
+									<Text id="empnr" width="500px"/>
+ 
 									<Label text="Employee Name" />
-									<Text id="empname"></Text>
+									<Text id="empname" width="500px"></Text>
 
 									<Label text="Last Contract Day" />
 									 <DatePicker
+									 	width="500px"
 										id="datePicker"
 										value="{/selectedDate}"
 										displayFormat="yyyy-MM-dd"
@@ -31,43 +31,46 @@
 										</f:SimpleForm>
 								</WizardStep>
 								
-								<WizardStep id="DocumentStep" title="Documents Center" validated="false">
-									<Label text="Termination Letter" id="termLetterlbl"/>
-										<unified:FileUploader
-											id="terminationLetter"
-											name="fileUpload"
-											placeholder="Choose a file"
-											width="100%"
-											change="onFileChange"
-											/>
+								<WizardStep id="DocumentStep" title="Documents Center" validated="false" class="centeredFormContent">
+									<f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+										<Label text="Termination Letter" id="termLetterlbl"/>
+											<unified:FileUploader 
+												id="terminationLetter"
+												name="fileUpload"
+												placeholder="Choose a file"
+												width="500px"
+												change="onFileChange"
+												/>
 					
-									<Label text="Calculation document severance pay" id="severanceDoc"/>
-										<unified:FileUploader
-											id="calculationDocument"
-											name="fileUpload"
-											placeholder="Choose a file"
-											width="100%"
-											change="onFileChange2"
-											/>
+										<Label text="Calculation document severance pay" id="severanceDoc"/>
+											<unified:FileUploader
+												id="calculationDocument"
+												name="fileUpload"
+												placeholder="Choose a file"
+												width="500px"
+												change="onFileChange2"
+												/>
+									</f:SimpleForm>
 								</WizardStep>
+								
+									
 
-								<WizardStep id="AdditionalInfoStep" validated="false" title="Additional Information">
+								<WizardStep id="AdditionalInfoStep" validated="false" title="Additional Information" class="centeredFormContent">
 									<f:SimpleForm editable="true" layout="ResponsiveGridLayout">
 										<Label text="What is the reason for termination?" id="lblTerm"/>
 											<ComboBox id="terminationReasonComboBox" 
 												selectionChange="onComboBoxSelectionChange"
 												placeholder="Select..."
-												maxWidth="100%">
-												<core:Item key="{externalCode}" text="{name}" />
+												width="500px">
 											</ComboBox>
 
     									<Label text="On which date did Sappi receive the resignation letter from the Employee?" id="resignationDatelbl" visible="false"/>
-											<DatePicker id="resignationDatePicker" displayFormat="yyyy-MM-dd" value="{/selectedDate}" visible="false"
+											<DatePicker id="resignationDatePicker" displayFormat="yyyy-MM-dd" value="{/selectedDate}" visible="false" width="500px"
 												valueFormat="yyyy-MM-dd"
 												placeholder="Select a date"/>
 
 										<Label text="Should the position remain in EC/SAP?" id="remainlbl" />
-											<ComboBox id="comboBox1" placeholder="Select..." >
+											<ComboBox id="comboBox1" placeholder="Select..." width="500px">
 												<items>
 													<core:Item key="Yes" text="Yes" />
 													<core:Item key="No" text="No" />
@@ -75,7 +78,7 @@
 											</ComboBox>
 
 										<Label text="Will this position be backfilled?" id="backfilllbl" />
-											<ComboBox id="comboBox4" placeholder="Select..." >
+											<ComboBox id="comboBox4" placeholder="Select..." width="500px">
 												<items>
 													<core:Item key="Yes" text="Yes" />
 													<core:Item key="No" text="No" />
@@ -83,7 +86,7 @@
 											</ComboBox>
 
 										<Label text="Regretted loss?" tooltip="EU defintion: does the departure have a negative" id="losslbl" />
-											<ComboBox id="comboBox2" placeholder="Select..." >
+											<ComboBox id="comboBox2" placeholder="Select..." width="500px">
 												<items>
 													<core:Item key="Yes" text="Yes" />
 													<core:Item key="No" text="No" />
@@ -91,16 +94,16 @@
 											</ComboBox>
 
 										<Label text="Personal email address" id="emaillbl" />
-											<Input placeholder="example123@gmail.com" id="Email" change="EmailValidation"/>
+											<Input placeholder="example123@gmail.com" id="Email" change="EmailValidation" width="500px"/>
 									</f:SimpleForm>
-								</WizardStep>
+								</WizardStep> 
 
-								<WizardStep id="OptionalInfoStep" validated="false" activate="optionalStepActivation" title="Direct Reports" visible="true">
+								<WizardStep id="OptionalInfoStep" validated="false" activate="optionalStepActivation" title="Direct Reports" visible="true" class="centeredFormContent">
 									<Label text="If employee had direct reports, to who should they be moved?" id="directReplbl" visible="true" />
 									<Label text="" id="NoDirectReports" visible="false" />
 										<SearchField visible="true"
 											id="searchField"
-											width="100%"
+											width="500px"
 											placeholder="Search for..."
 											enableSuggestions="true"
 											suggest=".onSuggest"
@@ -108,11 +111,10 @@
 											suggestionItems="{
 												path: 'UserModel>/'
 											}">
-												<SuggestionItem text="{UserModel>name} ({UserModel>EmpNr})" description="({path:'UserModel>EmpNr'})" key="{UserModel>EmpNr}" />
+												<SuggestionItem text="{UserModel>name}" description="({path:'UserModel>EmpNr'})" key="{UserModel>EmpNr}" />
 										</SearchField>
 								</WizardStep>
 						</Wizard>
-
 				</content>
 					<footer>
 							<OverflowToolbar>
@@ -123,13 +125,6 @@
 				</Page>
 
 				<Page id="ReviewPage" title = "Review Termination Form" showHeader="true"> 
-						<Button 
-                        		text="Submit Termination Form"
-                        		press="submitForm"
-                       			icon="sap-icon://accept"
-                        		width="200px" 
-                       			class="customButton"
-                        		type="Accept"/>  
 					<content>
 						 <f:SimpleForm editable="false" layout="ResponsiveGridLayout" title="1. Employee Detail's">
 							<Label text="PERS.NO"/>
@@ -155,7 +150,7 @@
 
 						<f:SimpleForm editable="false" layout="ResponsiveGridLayout" title="3. Additional Information">
 							<Label text="Termination Reason"/>
-							<Text text="{reviewModel>/termReas}" />
+							<Text text="{reviewModel>/termReas}"/>
 
 							<Label text="Resignation Date" visible="true" id="resignationDate"/>
 							<Text text="{reviewModel>/resigDate}" id="resigDatePicker" visible="true"/>
@@ -183,8 +178,23 @@
 						</f:SimpleForm>
 
 					</content>
+					<footer>
+						<OverflowToolbar>
+							<ToolbarSpacer/>
+									<Button 
+										text="Submit Termination Form to EC"
+										press="submitForm"
+										icon="sap-icon://accept"
+										type="Default">
+									</Button>
+
+									<Button text="Generate Termination Form" press=".onGeneratePDF" />
+									<Button text="Save Draft" />
+									<Button text="Trigger notification to works councils" />
+
+						</OverflowToolbar>
+					</footer>
 				</Page>
-					
 		</pages>
 	</NavContainer>
 </mvc:View>

@@ -1,7 +1,7 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageBox",
-    "sap/ui/model/Filter"
+    "sap/ui/model/Filter",
 ],
 function (Controller, MessageBox, Filter) {
     "use strict";
@@ -43,6 +43,8 @@ function (Controller, MessageBox, Filter) {
             // });
 
         },
+
+
 
         // #region View Review Page
         wizardCompletedHandler: function () {
@@ -122,7 +124,7 @@ function (Controller, MessageBox, Filter) {
         backToWizardContent: function () {
 			this._oNavContainer.backToPage(this._oWizardContentPage.getId());
 		},
-
+        
         _handleNavigationToStep: function (iStepNumber) {
 			var fnAfterNavigate = function () {
 				this._wizard.goToStep(this._wizard.getSteps()[iStepNumber]);
@@ -139,7 +141,6 @@ function (Controller, MessageBox, Filter) {
 
         editStepTwo: function () {
 			this._handleNavigationToStep(1);
-
 		},
 
 		editStepThree: function () {
@@ -176,29 +177,29 @@ function (Controller, MessageBox, Filter) {
         // #region Access and Change file to base 64
         onFileChange: function (oEvent) {
             // Log the event to check what is passed
-            console.log("FileChange Event: ", oEvent);
+            //console.log("FileChange Event: ", oEvent);
         
             // Get the FileUploader control explicitly by its ID
             const fileUploader = this.getView().byId("terminationLetter");
             
         
             // Log the FileUploader control to verify it's correctly retrieved
-            console.log("FileUploader control: ", fileUploader);
+           // console.log("FileUploader control: ", fileUploader);
         
             // Check if a file was selected
             if (oEvent.getParameter("files") && oEvent.getParameter("files").length > 0) {
                 const file = oEvent.getParameter("files")[0];  // Get the first selected file
         
                 // Log the selected file details
-                console.log("Selected File: ", file);
+                //console.log("Selected File: ", file);
         
                 // Extract file properties
                 const sFileName = file.name;     // File name
                 const sMimeType = file.type;     // MIME type
         
                 // Log the file name and MIME type
-                console.log("File Name: ", sFileName);
-                console.log("MIME Type: ", sMimeType);
+                //console.log("File Name: ", sFileName);
+                //console.log("MIME Type: ", sMimeType);
         
                 // Read the file content and convert it to Base64
                 const fileReader = new FileReader();
@@ -209,7 +210,7 @@ function (Controller, MessageBox, Filter) {
                     const sBase64Data = fileReader.result.split(',')[1];
         
                     // Log the Base64 encoded data (for debugging purposes, limit log size)
-                    console.log("Base64 Data: ", sBase64Data.substring(0, 100)); // Logs first 100 characters
+                    //console.log("Base64 Data: ", sBase64Data.substring(0, 100)); // Logs first 100 characters
         
                     // Store file data for later use (upload)
                     this._oFileData = {
@@ -218,7 +219,7 @@ function (Controller, MessageBox, Filter) {
                         fileContent: sBase64Data
                     };
 
-                    console.log("File data processed and stored for upload.");
+                    //console.log("File data processed and stored for upload.");
                 }.bind(this);  // Ensure the correct context of `this`
                 
                 // Start reading the file as a data URL (base64)
@@ -229,24 +230,9 @@ function (Controller, MessageBox, Filter) {
             }
         },
 
-        handleWizardCancel: function () {
-			this._handleMessageBoxOpen("Are you sure you want to cancel your report?", "warning");
-		},
-
-        // additionalInfoValidation: function () {
-		//     //var termLetter = this.getView().byId("terminationLetter").getValue();
-		// 	var CalcDoc = this.getView().byId("calculationDocument").getValue();
-
-        //     if (CalcDoc) {
-        //         //this._wizard.setCurrentStep(this.byId("DocumentsStep"));
-        //         this._wizard.validateStep(this.getView().byId("DocumentStep"));
-        //     }
-		// },
-
-
         onFileChange2: function (oEvent) {
             // Log the event to check what is passed
-            console.log("FileChange Event: ", oEvent);
+            //console.log("FileChange Event: ", oEvent);
         
             // Get the FileUploader control explicitly by its ID
             const fileUploader2 = this.getView().byId("calculationDocument");
@@ -254,22 +240,22 @@ function (Controller, MessageBox, Filter) {
             const docData = fileUploader2.getValue()
         
             // Log the FileUploader control to verify it's correctly retrieved
-            console.log("FileUploader control: ", fileUploader2);
+           // console.log("FileUploader control: ", fileUploader2);
         
             // Check if a file was selected
             if (oEvent.getParameter("files") && oEvent.getParameter("files").length > 0) {
                 const file2 = oEvent.getParameter("files")[0];  // Get the first selected file
         
                 // Log the selected file details
-                console.log("Selected File: ", file2);
+               // console.log("Selected File: ", file2);
         
                 // Extract file properties
                 const pFileName = file2.name;     // File name
                 const pMimeType = file2.type;     // MIME type
         
                 // Log the file name and MIME type
-                console.log("File Name: ", pFileName);
-                console.log("MIME Type: ", pMimeType);
+                //console.log("File Name: ", pFileName);
+                //console.log("MIME Type: ", pMimeType);
         
                 // Read the file content and convert it to Base64
                 const fileReader2 = new FileReader();
@@ -280,7 +266,7 @@ function (Controller, MessageBox, Filter) {
                     const pBase64Data = fileReader2.result.split(',')[1];
         
                     // Log the Base64 encoded data (for debugging purposes, limit log size)
-                    console.log("Base64 Data: ", pBase64Data.substring(0, 100)); // Logs first 100 characters
+                    //console.log("Base64 Data: ", pBase64Data.substring(0, 100)); // Logs first 100 characters
         
                     // Store file data for later use (upload)
                     this._oFileData2 = {
@@ -295,7 +281,7 @@ function (Controller, MessageBox, Filter) {
                         SecondWiz.setValidated(false)
                     }
         
-                    console.log("File data processed and stored for upload.");
+                    //console.log("File data processed and stored for upload.");
                     this.getView().byId("lblTerm").setVisible(true)
                     this.getView().byId("remainlbl").setVisible(true)
                     this.getView().byId("backfilllbl").setVisible(true)
@@ -332,7 +318,7 @@ function (Controller, MessageBox, Filter) {
             oModel.read(`/User('${sUserId}')`, {
                 success: function (oData) {
                     const iTeamMembersSize = oData.teamMembersSize;
-                    console.log(iTeamMembersSize)
+                    //console.log(iTeamMembersSize)
                    // const email = that.getView().byId("Email")
                     //const emailValue = email.getValue()
 
@@ -360,6 +346,74 @@ function (Controller, MessageBox, Filter) {
             });
         },
 
+        // #endregion
+
+        // #region GeneratePDF
+        onGeneratePDF: function () {
+            // Create a new jsPDF instance
+            const { jsPDF } = window.jspdf;
+        
+            if (!jsPDF) {
+                console.error("jsPDF is not loaded!");
+                return;
+            }
+        
+            const doc = new jsPDF();
+            
+            // Get data from fields
+            let empNr = this.getView().byId("empnr").getText();
+            let empName = this.getView().byId("empname").getText();
+            let selectedDate = this.getView().byId("datePicker").getValue();
+            let TL = this.getView().byId("terminationLetter").getValue();
+            let SP = this.getView().byId("calculationDocument").getValue();
+            let PosR = this.getView().byId("comboBox1").getValue();
+            let Regret = this.getView().byId("comboBox2").getValue();
+            let directReport = this.getView().byId("searchField").getValue();
+            let email = this.getView().byId("Email").getValue();
+            let TermReason = this.getView().byId("terminationReasonComboBox").getValue();
+            let backFill = this.getView().byId("comboBox4").getValue();
+            let resigDate = this.getView().byId("resignationDatePicker").getValue();
+        
+            // Define PDF content
+            doc.setFont("Helvetica", "normal");
+            doc.setFontSize(16);
+            doc.text("Termination Form", 20, 20);
+            doc.setDrawColor(0, 0, 0);
+            doc.line(10, 25, 200, 25);  // Line under title
+        
+            doc.setFontSize(14);
+            doc.setTextColor(0);
+            doc.text("Employee Termination Details", 20, 35);
+            
+            // Define text positioning for details
+            doc.setFontSize(12);
+            doc.setTextColor(0); // Reset color to black
+            const startY = 50; // Start Y position for details
+            const lineHeight = 10; // Height between lines
+        
+            // Adding employee details
+            doc.text(`Employee Number: ${empNr}`, 20, startY);
+            doc.text(`Employee Name: ${empName}`, 20, startY + lineHeight);
+            doc.text(`Last Contract Day: ${selectedDate}`, 20, startY + lineHeight * 2);
+            doc.text(`Position Remaining: ${PosR}`, 20, startY + lineHeight * 3);
+            doc.text(`Email: ${email}`, 20, startY + lineHeight * 4);
+            doc.text(`Termination Reason: ${TermReason}`, 20, startY + lineHeight * 5);
+            doc.text(`Regretted Loss: ${Regret}`, 20, startY + lineHeight * 6);
+            doc.text(`Will Position Be Backfilled?: ${backFill}`, 20, startY + lineHeight * 7);
+            doc.text(`Direct Reports: ${directReport}`, 20, startY + lineHeight * 8);
+            doc.text(`Resignation Date: ${resigDate}`, 20, startY + lineHeight * 9);
+            
+            // Attachments Section
+            doc.setFontSize(14);
+            doc.text("Attachments", 20, startY + lineHeight * 10 + 10);
+            
+            doc.setFontSize(12);
+            doc.text(`1. Termination Letter: ${TL}`, 20, startY + lineHeight * 11 + 10);
+            doc.text(`2. Severance Document: ${SP}`, 20, startY + lineHeight * 12 + 10);
+        
+            // Save the PDF
+            doc.save("Termination_Form.pdf");
+        },
         // #endregion
 
         // #region Validation Checks
@@ -424,7 +478,7 @@ function (Controller, MessageBox, Filter) {
                 oModel.create("/Attachment", oPayload, {
                     success: function (oData) {
                         resolve(oData.attachmentId); // Return the attachment ID
-                        console.log("Attachment uploaded successfully, Attachment ID: ", oData.attachmentId); 
+                        //console.log("Attachment uploaded successfully, Attachment ID: ", oData.attachmentId); 
                     },
                     error: function (oError) {
                         reject(oError); // Reject on error
@@ -456,7 +510,7 @@ function (Controller, MessageBox, Filter) {
                 oModel.create("/Attachment", oPayload2, {
                     success: function (oData) {
                         resolve(oData.attachmentId); // Return the attachment ID
-                        console.log("Attachment 2 uploaded successfully, Attachment ID: ", oData.attachmentId); 
+                        //console.log("Attachment 2 uploaded successfully, Attachment ID: ", oData.attachmentId); 
                     },
                     error: function (oError) {
                         reject(oError); // Reject on error
@@ -485,7 +539,7 @@ function (Controller, MessageBox, Filter) {
 
         setUserId: function () {
             this._sUserId = this.getUserId();
-            console.log(this._sUserId)
+            //console.log(this._sUserId)
         },
 
         getUserDetails: function() {
@@ -524,7 +578,7 @@ function (Controller, MessageBox, Filter) {
                         actions: [MessageBox.Action.OK], // Action buttons
                         onClose: function (oAction) {
                             // Handle action if necessary (optional)
-                            console.log("MessageBox closed with action: " + oAction);
+                            //console.log("MessageBox closed with action: " + oAction);
                         }
                     }
                 );
@@ -616,17 +670,17 @@ function (Controller, MessageBox, Filter) {
             oModel.read("/FOEventReason", {
                 success: (oData) => {
                     // Log data to verify it was retrieved successfully
-                    console.log("FOEventReason data:", oData);
+                   // console.log("FOEventReason data:", oData);
         
                     // Filter the data client-side based on the 'event' field
                     const filteredData = oData.results.filter(item => item.event === "3680");
         
                     // Log filtered data to check if filtering worked
-                    console.log("Filtered FOEventReason data:", filteredData);
+                    //console.log("Filtered FOEventReason data:", filteredData);
         
                     // If no data matches the filter, log a warning
                     if (filteredData.length === 0) {
-                        console.warn("No FOEventReason records match the event '3680'");
+                        //console.warn("No FOEventReason records match the event '3680'");
                     }
         
                     // Create a JSON model for the filtered data
@@ -640,7 +694,7 @@ function (Controller, MessageBox, Filter) {
                         path: "/items",
                         template: new sap.ui.core.ListItem({
                             key: "{externalCode}",
-                            text: "{name}"
+                            text: "{name} ({externalCode})"
                         })
                     });
                 },
@@ -732,6 +786,34 @@ function (Controller, MessageBox, Filter) {
         //     },
          // #endregion
 
+         // #region onCancel
+         _handleMessageBoxOpen: function (sMessage, sMessageBoxType) {
+			MessageBox[sMessageBoxType](sMessage, {
+				actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+				onClose: function (oAction) {
+					if (oAction === MessageBox.Action.YES) {
+						this._handleNavigationToStep(0);
+						this._wizard.discardProgress(this._wizard.getSteps()[0]);
+                        this.getView().byId("datePicker").setDateValue(null)
+                        this.getView().byId("terminationLetter").setValue("")
+                        this.getView().byId("calculationDocument").setValue("")
+                        this.getView().byId("terminationReasonComboBox").setValue("")
+                        this.getView().byId("resignationDatePicker").setValue("")
+                        this.getView().byId("comboBox1").setValue("")
+                        this.getView().byId("comboBox4").setValue("")
+                        this.getView().byId("comboBox2").setValue("")
+                        this.getView().byId("Email").setValue("")
+                        this.getView().byId("searchField").setValue("")
+					}
+				}.bind(this)
+			});
+		},
+
+        handleWizardCancel: function () {
+			this._handleMessageBoxOpen("Are you sure you want to cancel your report?", "warning");
+		},
+
+         // #endregion
 
 
 
@@ -764,7 +846,7 @@ function (Controller, MessageBox, Filter) {
                     const attachmentId = await that.uploadAttachment(that._oFileData.fileName, that._oFileData.fileContent);
                     const attachmentId2 = await that.uploadAttachment2(that._oFileData2.fileName, that._oFileData2.fileContent);
                     
-                    if (resigDate == '') {
+                    if (PosR === "TERVCOMP") {
                         payload = {
                             "__metadata": {
                                 "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
@@ -780,6 +862,7 @@ function (Controller, MessageBox, Filter) {
                             "cust_LastContractDay" : oDateInTicks,
                             "cust_TerminationReason" : TermReason,
                             "cust_EmployeeBackfill" : backFill,
+                            "cust_ResignationDate" : rDateInTicks,
                             "cust_TerminationLetterNav" : {
                                  "__metadata" : {
                                      "uri" : `Attachment('${attachmentId}')`
@@ -799,7 +882,7 @@ function (Controller, MessageBox, Filter) {
                                 "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
                                 "type" : "SFOData.cust_EmployeeTerminationForm"
                             },
-                        
+
                             "cust_PositionRemain": PosR,
                             "cust_RegrettedLoss": Regret,
                             "cust_DirectReports": directReport,
@@ -809,8 +892,7 @@ function (Controller, MessageBox, Filter) {
                             "cust_LastContractDay" : oDateInTicks,
                             "cust_TerminationReason" : TermReason,
                             "cust_EmployeeBackfill" : backFill,
-                            "cust_ResignationDate" : rDateInTicks,
-                            
+                            "cust_ResignationDate" : null,
                             "cust_TerminationLetterNav" : {
                                 "__metadata" : {
                                     "uri" : `Attachment('${attachmentId}')`
