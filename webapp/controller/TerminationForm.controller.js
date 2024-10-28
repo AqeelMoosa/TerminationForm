@@ -227,6 +227,10 @@ function (Controller, MessageBox, Filter) {
             } else {
                 // Log error if no file is selected
                 console.error("No file selected.");
+                sap.m.MessageBox.show("No file found", {
+                    icon: sap.m.MessageBox.Icon.ERROR,
+                    title: "Warning!"
+                });
             }
         },
 
@@ -303,6 +307,10 @@ function (Controller, MessageBox, Filter) {
             } else {
                 // Log error if no file is selected
                 console.error("No file selected.");
+                sap.m.MessageBox.show("No file found", {
+                    icon: sap.m.MessageBox.Icon.ERROR,
+                    title: "Warning!"
+                });
             }
         },
         // #endregion
@@ -342,6 +350,10 @@ function (Controller, MessageBox, Filter) {
                 },
                 error: function (oError) {
                     console.error("Error fetching User entity:", oError);
+                    sap.m.MessageBox.show("User Not Found", {
+                        icon: sap.m.MessageBox.Icon.ERROR,
+                        title: "Warning!"
+                    });
                 }
             });
         },
@@ -700,6 +712,10 @@ function (Controller, MessageBox, Filter) {
                 },
                 error: (oError) => {
                     console.error("Error fetching FOEventReason data", oError);
+                    sap.m.MessageBox.show("Error fetching termination reason", {
+                        icon: sap.m.MessageBox.Icon.ERROR,
+                        title: "Warning!"
+                    });
                 }
             });
         },
@@ -810,12 +826,10 @@ function (Controller, MessageBox, Filter) {
 		},
 
         handleWizardCancel: function () {
-			this._handleMessageBoxOpen("Are you sure you want to cancel your report?", "warning");
+			this._handleMessageBoxOpen("Are you sure you want to cancel the form?", "warning");
 		},
 
          // #endregion
-
-
 
 
         // #region Send Termination details to custom MDF
@@ -936,6 +950,10 @@ function (Controller, MessageBox, Filter) {
                 },
                 error: function (oError){
                     console.error(oError)
+                    sap.m.MessageBox.show("Error in form submission", {
+                        icon: sap.m.MessageBox.Icon.ERROR,
+                        title: "Warning!"
+                    });
                 }
             });
     
@@ -943,6 +961,10 @@ function (Controller, MessageBox, Filter) {
             catch (error) 
                  {
                     console.error("Error uploading attachment:", error);
+                    sap.m.MessageBox.show("Error uploading attachments", {
+                        icon: sap.m.MessageBox.Icon.ERROR,
+                        title: "Warning!"
+                    });
                  }
                  
         }
@@ -950,6 +972,10 @@ function (Controller, MessageBox, Filter) {
         else
         {
               console.error("No file data available for upload.");
+              sap.m.MessageBox.show("No file data available for upload.", {
+                icon: sap.m.MessageBox.Icon.ERROR,
+                title: "Warning!"
+            });
         }
       }
     })
