@@ -385,109 +385,137 @@ function (Controller, MessageBox, Filter) {
             const TL = this.getView().byId("terminationLetter").getValue();
             const SP = this.getView().byId("calculationDocument").getValue();
         
-            // Create a new Word document
-            const doc = new Document({
-                sections: [
-                    {
-                        properties: {},
-                        children: [
-                            // Main Title
-                            new Paragraph({
+            // Retrieve team members size
+            
+            let teamMembersSize = 0; // initialize variable
+            const oModel = this.getOwnerComponent().getModel();
+            const sUserId = this._sUserId;
+        
+            oModel.read(`/User('${sUserId}')`, {
+                success: function (oData) {
+                    teamMembersSize = oData.teamMembersSize;
+        
+                    // Create a new Word document
+                    const doc = new Document({
+                        sections: [
+                            {
+                                properties: {},
                                 children: [
-                                    new TextRun({
-                                        text: "Employee Termination Form",
-                                        bold: true,
-                                        size: 28,
-                                        break: 1
+                                    // Main Title
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({
+                                                text: "Employee Termination Form",
+                                                bold: true,
+                                                underline: true,
+                                                size: 28,
+                                                break: 1
+                                            })
+                                        ],
+                                        spacing: { after: 300 }
+                                    }),
+        
+                                    // Employee Details Section
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({ text: "Employee Details", bold: true, underline: true, size: 24, break: 1 })
+                                        ],
+                                        spacing: { after: 200 }
+                                    }),
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({ text: `Employee Number: ${empNr}`, bold: true, size: 18 }),
+                                            new TextRun({ text: ` Employee Name: ${empName}`, break: 1, bold: true, size: 18 }),
+                                            new TextRun({ text: ` Last Contract Day: ${selectedDate}`, break: 1, bold: true, size: 18 })
+                                        ],
+                                        spacing: { after: 100 } // Add spacing between the label-value pairs
+                                    }),
+        
+                                    // Additional Information Section
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({ text: "Additional Information", bold: true, underline: true, size: 24, break: 1 })
+                                        ],
+                                        spacing: { after: 200 }
+                                    }),
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({ text: `Termination Reason: ${terminationReason}`, bold: true, size: 18 }),
+                                            // Conditionally add Resignation Date
+                                            ...(terminationReason === "TERVCOMP" ? [
+                                                new TextRun({ text: ` Resignation Date: ${resigDate}`, break: 1, bold: true, size: 18 })
+                                            ] : []),
+                                            new TextRun({ text: ` Position Remaining: ${posR}`, break: 1, bold: true, size: 18 }),
+                                            new TextRun({ text: ` Regretted Loss: ${regret}`, break: 1, bold: true, size: 18 }),
+                                            new TextRun({ text: ` Position Backfill: ${backFill}`, break: 1, bold: true, size: 18 }),
+                                            new TextRun({ text: ` Email: ${email}`, break: 1, bold: true, size: 18 })
+                                        ],
+                                        spacing: { after: 100 } // Add spacing between the label-value pairs
+                                    }),
+        
+                                    // Direct Reports Section
+                                    // Only add this section if team members size is >= 1
+                                    ...(teamMembersSize >= 1 ? [
+                                        new Paragraph({
+                                            children: [
+                                                new TextRun({ text: "Direct Reports", bold: true, underline: true, size: 24, break: 1 })
+                                            ],
+                                            spacing: { after: 200 }
+                                        }),
+                                        new Paragraph({
+                                            children: [
+                                                new TextRun({ text: `Direct Report to: ${directReport}`, bold: true, size: 18 })
+                                            ],
+                                            spacing: { after: 100 } // Add spacing
+                                        })
+                                    ] : []),
+        
+                                    // Attachments Section
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({ text: "Attachments", bold: true, underline: true, size: 24, break: 1 })
+                                        ],
+                                        spacing: { after: 200 }
+                                    }),
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({ text: `Termination Letter: ${TL}`, bold: true, size: 18 }),
+                                            new TextRun({ text: ` Severance Package Document: ${SP}`, break: 1, bold: true, size: 18 })
+                                        ],
+                                        spacing: { after: 100 } // Add spacing
                                     })
-                                ],
-                                spacing: { after: 300 }
-                            }),
-        
-                            // Employee Details Section
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: "Employee Details", bold: true, size: 24, break: 1 })
-                                ],
-                                spacing: { after: 200 }
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: `Employee Number: ${empNr}`, bold: true }),
-                                    new TextRun({ text: `\nEmployee Name: ${empName}`, break: 1, bold: true }),
-                                    new TextRun({ text: `\nLast Contract Day: ${selectedDate}`, break: 1, bold: true })
                                 ]
-                            }),
-        
-                            // Additional Information Section
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: "Additional Information", bold: true, size: 24, break: 1 })
-                                ],
-                                spacing: { after: 200 }
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: `Termination Reason: ${terminationReason}`, bold: true }),
-                                    new TextRun({ text: `\nResignation Date: ${resigDate}`, break: 1, bold: true }),
-                                    new TextRun({ text: `\nPosition Remaining: ${posR}`, break: 1, bold: true }),
-                                    new TextRun({ text: `\nRegretted Loss: ${regret}`, break: 1, bold: true }),
-                                    new TextRun({ text: `\nPosition Backfill: ${backFill}`, break: 1, bold: true }),
-                                    new TextRun({ text: `\nEmail: ${email}`, break: 1, bold: true })
-                                ]
-                            }),
-        
-                            // Direct Reports Section
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: "Direct Reports", bold: true, size: 24, break: 1 })
-                                ],
-                                spacing: { after: 200 }
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: `Direct Report to: ${directReport}`, bold: true })
-                                ]
-                            }),
-        
-                            // Attachments Section
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: "Attachments", bold: true, size: 24, break: 1 })
-                                ],
-                                spacing: { after: 200 }
-                            }),
-                            new Paragraph({
-                                children: [
-                                    new TextRun({ text: `Termination Letter: ${TL}`, bold: true }),
-                                    new TextRun({ text: `\nSeverance Package Document: ${SP}`, break: 1, bold: true })
-                                ]
-                            })
+                            }
                         ]
-                    }
-                ]
-            });
+                    });
         
-            // Generate and download the Word document
-            Packer.toBlob(doc).then(blob => {
-                const fileName = "Termination_Form.docx";
-                saveAs(blob, fileName); // saveAs requires FileSaver.js or similar library
+                    // Generate and download the Word document
+                    Packer.toBlob(doc).then(blob => {
+                        const fileName = "Termination_Form.docx";
+                        saveAs(blob, fileName); // saveAs requires FileSaver.js or similar library
+                    });
+                },
+                error: function () {
+                    console.error("Failed to retrieve team member size.");
+                }
             });
         },
         
-
+        
+        
+    
         onGeneratePDF: function () {
             // Create a new jsPDF instance
             const { jsPDF } = window.jspdf;
             var oComboBox = this.getView().byId("terminationReasonComboBox");
             var oSelectedItem = oComboBox.getSelectedItem();
             var sSelectedKey = oSelectedItem.getKey();
-        
+            
             if (!jsPDF) {
                 console.error("jsPDF is not loaded!");
                 return;
             }
-        
+            
             const doc = new jsPDF();
             
             // Get data from fields
@@ -504,181 +532,196 @@ function (Controller, MessageBox, Filter) {
             let backFill = this.getView().byId("comboBox4").getValue();
             let resigDate = this.getView().byId("resignationDatePicker").getValue();
         
-            // Define PDF content
-            doc.setFont("Helvetica", "normal");
-            doc.setFontSize(16);
-            doc.text("Termination Form", 20, 20);
-            doc.setDrawColor(0, 0, 0);
-            doc.line(10, 25, 200, 25);  // Line under title
-            
-            // Define text positioning for details
-            doc.setFontSize(12);
-            doc.setTextColor(0); // Reset color to black
-    
-            if (sSelectedKey === "TERVCOMP") {
-                         // Section: Employee Details
+            // Retrieve team members size
+            const that = this; // store reference to this
+            let teamMembersSize = 0; // initialize variable
+            const oModel = this.getOwnerComponent().getModel();
+            const sUserId = this._sUserId;
+        
+            oModel.read(`/User('${sUserId}')`, {
+                success: function (oData) {
+                    teamMembersSize = oData.teamMembersSize;
+        
+                    // Define PDF content
+                    doc.setFont("Helvetica", "normal");
+                    doc.setFontSize(16);
+                    doc.text("Termination Form", 20, 20);
+                    doc.setDrawColor(0, 0, 0);
+                    doc.line(10, 25, 200, 25);  // Line under title
+                    
+                    // Define text positioning for details
+                    doc.setFontSize(12);
+                    doc.setTextColor(0); // Reset color to black
+        
+                    if (sSelectedKey === "TERVCOMP") {
+                        // Section: Employee Details
                         doc.setFontSize(14);
                         doc.text("Employee Details", 20, 40);
-
+                        
                         doc.setFontSize(12);
                         doc.setFont("Helvetica", "bold");
                         doc.text("Employee Number:", 20, 50);
                         doc.setFont("Helvetica", "normal");
                         doc.text(empNr, 60, 50);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Employee Name:", 20, 60);
                         doc.setFont("Helvetica", "normal");
                         doc.text(empName, 60, 60);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Last Contract Day:", 20, 70);
                         doc.setFont("Helvetica", "normal");
                         doc.text(selectedDate, 60, 70);
-
-                         // Section: Additional Information
+                        
+                        // Section: Additional Information
                         doc.setFontSize(14);
                         doc.text("Additional Information", 20, 90);
-
+                        
                         doc.setFontSize(12);
                         doc.setFont("Helvetica", "bold");
                         doc.text("Termination Reason:", 20, 100);
                         doc.setFont("Helvetica", "normal");
                         doc.text(TermReason, 70, 100);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Resignation Date:", 20, 110);
                         doc.setFont("Helvetica", "normal");
                         doc.text(resigDate, 60, 110);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Position Remaining:", 20, 120);
                         doc.setFont("Helvetica", "normal");
                         doc.text(PosR, 70, 120);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Regretted Loss:", 20, 130);
                         doc.setFont("Helvetica", "normal");
                         doc.text(Regret, 60, 130);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Position Backfill:", 20, 140);
                         doc.setFont("Helvetica", "normal");
                         doc.text(backFill, 60, 140);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Email:", 20, 150);
                         doc.setFont("Helvetica", "normal");
                         doc.text(email, 40, 150);
-
-                        // Section: Direct Reports
-                        doc.setFontSize(14);
-                        doc.text("Direct Reports", 20, 170);
-
-                        doc.setFontSize(12);
-                        doc.setFont("Helvetica", "bold");
-                        doc.text("Direct Report to:", 20, 180);
-                        doc.setFont("Helvetica", "normal");
-                        doc.text(directReport, 60, 180);
-
+                        
+                        // Section: Direct Reports (only if team members size >= 1)
+                        if (teamMembersSize >= 1) {
+                            doc.setFontSize(14);
+                            doc.text("Direct Reports", 20, 170);
+                            
+                            doc.setFontSize(12);
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Direct Report to:", 20, 180);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(directReport, 60, 180);
+                        }
+        
                         // Section: Attachments
                         doc.setFontSize(14);
                         doc.text("Attachments", 20, 200);
-
+                        
                         doc.setFontSize(12);
                         doc.setFont("Helvetica", "bold");
                         doc.text("Termination Letter ID:", 20, 210);
                         doc.setFont("Helvetica", "normal");
                         doc.text(TL, 70, 210);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Severance Pay Document ID:", 20, 220);
                         doc.setFont("Helvetica", "normal");
                         doc.text(SP, 90, 220);
-
-                        // Save the PDF
-                        doc.save("Termination_Form.pdf");
-        
-            } else {
+                    } else {
                         // Section: Employee Details
                         doc.setFontSize(14);
                         doc.text("Employee Details", 20, 40);
-
+                        
                         doc.setFontSize(12);
                         doc.setFont("Helvetica", "bold");
                         doc.text("Employee Number:", 20, 50);
                         doc.setFont("Helvetica", "normal");
                         doc.text(empNr, 60, 50);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Employee Name:", 20, 60);
                         doc.setFont("Helvetica", "normal");
                         doc.text(empName, 60, 60);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Last Contract Day:", 20, 70);
                         doc.setFont("Helvetica", "normal");
                         doc.text(selectedDate, 60, 70);
-
-                         // Section: Additional Information
+                        
+                        // Section: Additional Information
                         doc.setFontSize(14);
                         doc.text("Additional Information", 20, 90);
-
+                        
                         doc.setFontSize(12);
                         doc.setFont("Helvetica", "bold");
                         doc.text("Termination Reason:", 20, 100);
                         doc.setFont("Helvetica", "normal");
                         doc.text(TermReason, 70, 100);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Position Remaining:", 20, 110);
                         doc.setFont("Helvetica", "normal");
                         doc.text(PosR, 70, 110);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Regretted Loss:", 20, 120);
                         doc.setFont("Helvetica", "normal");
                         doc.text(Regret, 60, 120);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Position Backfill:", 20, 130);
                         doc.setFont("Helvetica", "normal");
                         doc.text(backFill, 60, 130);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Email:", 20, 140);
                         doc.setFont("Helvetica", "normal");
                         doc.text(email, 40, 140);
-
-                        // Section: Direct Reports
-                        doc.setFontSize(14);
-                        doc.text("Direct Reports", 20, 170);
-
-                        doc.setFontSize(12);
-                        doc.setFont("Helvetica", "bold");
-                        doc.text("Direct Report to:", 20, 180);
-                        doc.setFont("Helvetica", "normal");
-                        doc.text(directReport, 60, 180);
-
+                        
+                        // Section: Direct Reports (only if team members size >= 1)
+                        if (teamMembersSize >= 1) {
+                            doc.setFontSize(14);
+                            doc.text("Direct Reports", 20, 170);
+                            
+                            doc.setFontSize(12);
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Direct Report to:", 20, 180);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(directReport, 60, 180);
+                        }
+        
                         // Section: Attachments
                         doc.setFontSize(14);
                         doc.text("Attachments", 20, 200);
-
+                        
                         doc.setFontSize(12);
                         doc.setFont("Helvetica", "bold");
                         doc.text("Termination Letter ID:", 20, 210);
                         doc.setFont("Helvetica", "normal");
                         doc.text(TL, 70, 210);
-
+                        
                         doc.setFont("Helvetica", "bold");
                         doc.text("Severance Pay Document ID:", 20, 220);
                         doc.setFont("Helvetica", "normal");
                         doc.text(SP, 70, 220);
-
-                        // Save the PDF
-                        doc.save("Termination_Form.pdf");
                     }
+        
+                    // Save the PDF
+                    doc.save("Termination_Form.pdf");
                 },
+                error: function () {
+                    console.error("Failed to read user data");
+                }
+            });
+        },
         // #endregion
 
         // #region Validation Checks
