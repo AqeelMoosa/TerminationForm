@@ -361,9 +361,96 @@ function (Controller, MessageBox, Filter) {
         // #endregion
 
         // #region GeneratePDF
+
+        onGenerateWordDoc: function () {
+            const { Document, Packer, Paragraph, TextRun } = window.docx;
+        
+            // Initialize document
+            const doc = new Document();
+        
+            // Define sections in the document
+            const createHeading = (text) => new Paragraph({
+                text,
+                heading: "Heading1",
+                spacing: { after: 300 }
+            });
+        
+            const createField = (label, value) => new Paragraph({
+                children: [
+                    new TextRun({
+                        text: label,
+                        bold: true
+                    }),
+                    new TextRun({
+                        text: ` ${value}`,
+                        break: 1,
+                    })
+                ]
+            });
+        
+            // Data fields
+            let empNr = this.getView().byId("empnr").getText();
+            let empName = this.getView().byId("empname").getText();
+            let selectedDate = this.getView().byId("datePicker").getValue();
+            let terminationReason = this.getView().byId("terminationReasonComboBox").getSelectedKey();
+            let resigDate = this.getView().byId("resignationDatePicker").getValue();
+            let posR = this.getView().byId("comboBox1").getValue();
+            let regret = this.getView().byId("comboBox2").getValue();
+            let backFill = this.getView().byId("comboBox4").getValue();
+            let email = this.getView().byId("Email").getValue();
+            let directReport = this.getView().byId("searchField").getValue();
+            let attachmentId = this.getView().byId("terminationLetter").getValue();
+            let attachmentId2 = this.getView().byId("calculationDocument").getValue();
+        
+            // Document structure
+            doc.addSection({
+                children: [
+                    // Title
+                    new Paragraph({
+                        text: "Termination Form",
+                        heading: "Title",
+                        spacing: { after: 400 }
+                    }),
+        
+                    // Employee Details Section
+                    createHeading("Employee Details"),
+                    createField("Employee Number:", empNr),
+                    createField("Employee Name:", empName),
+                    createField("Last Contract Day:", selectedDate),
+        
+                    // Additional Information Section
+                    createHeading("Additional Information"),
+                    createField("Termination Reason:", terminationReason),
+                    createField("Resignation Date:", resigDate),
+                    createField("Position Remaining:", posR),
+                    createField("Regretted Loss:", regret),
+                    createField("Position Backfill:", backFill),
+                    createField("Email:", email),
+        
+                    // Direct Reports Section
+                    createHeading("Direct Reports"),
+                    createField("Direct Report to:", directReport),
+        
+                    // Attachments Section
+                    createHeading("Attachments"),
+                    createField("Termination Letter ID:", attachmentId),
+                    createField("Severance Pay Document ID:", attachmentId2),
+                ],
+            });
+        
+            // Save document as a Word file
+            Packer.toBlob(doc).then((blob) => {
+                saveAs(blob, "Termination_Form.docx");
+            });
+        },
+        
+
         onGeneratePDF: function () {
             // Create a new jsPDF instance
             const { jsPDF } = window.jspdf;
+            var oComboBox = this.getView().byId("terminationReasonComboBox");
+            var oSelectedItem = oComboBox.getSelectedItem();
+            var sSelectedKey = oSelectedItem.getKey();
         
             if (!jsPDF) {
                 console.error("jsPDF is not loaded!");
@@ -392,40 +479,175 @@ function (Controller, MessageBox, Filter) {
             doc.text("Termination Form", 20, 20);
             doc.setDrawColor(0, 0, 0);
             doc.line(10, 25, 200, 25);  // Line under title
-        
-            doc.setFontSize(14);
-            doc.setTextColor(0);
-            doc.text("Employee Termination Details", 20, 35);
             
             // Define text positioning for details
             doc.setFontSize(12);
             doc.setTextColor(0); // Reset color to black
-            const startY = 50; // Start Y position for details
-            const lineHeight = 10; // Height between lines
+    
+            if (sSelectedKey === "TERVCOMP") {
+                         // Section: Employee Details
+                        doc.setFontSize(14);
+                        doc.text("Employee Details", 20, 40);
+
+                        doc.setFontSize(12);
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Employee Number:", 20, 50);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(empNr, 60, 50);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Employee Name:", 20, 60);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(empName, 60, 60);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Last Contract Day:", 20, 70);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(selectedDate, 60, 70);
+
+                         // Section: Additional Information
+                        doc.setFontSize(14);
+                        doc.text("Additional Information", 20, 90);
+
+                        doc.setFontSize(12);
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Termination Reason:", 20, 100);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(TermReason, 70, 100);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Resignation Date:", 20, 110);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(resigDate, 60, 110);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Position Remaining:", 20, 120);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(PosR, 70, 120);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Regretted Loss:", 20, 130);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(Regret, 60, 130);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Position Backfill:", 20, 140);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(backFill, 60, 140);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Email:", 20, 150);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(email, 40, 150);
+
+                        // Section: Direct Reports
+                        doc.setFontSize(14);
+                        doc.text("Direct Reports", 20, 170);
+
+                        doc.setFontSize(12);
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Direct Report to:", 20, 180);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(directReport, 60, 180);
+
+                        // Section: Attachments
+                        doc.setFontSize(14);
+                        doc.text("Attachments", 20, 200);
+
+                        doc.setFontSize(12);
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Termination Letter ID:", 20, 210);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(TL, 70, 210);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Severance Pay Document ID:", 20, 220);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(SP, 90, 220);
+
+                        // Save the PDF
+                        doc.save("Termination_Form.pdf");
         
-            // Adding employee details
-            doc.text(`Employee Number: ${empNr}`, 20, startY);
-            doc.text(`Employee Name: ${empName}`, 20, startY + lineHeight);
-            doc.text(`Last Contract Day: ${selectedDate}`, 20, startY + lineHeight * 2);
-            doc.text(`Position Remaining: ${PosR}`, 20, startY + lineHeight * 3);
-            doc.text(`Email: ${email}`, 20, startY + lineHeight * 4);
-            doc.text(`Termination Reason: ${TermReason}`, 20, startY + lineHeight * 5);
-            doc.text(`Regretted Loss: ${Regret}`, 20, startY + lineHeight * 6);
-            doc.text(`Will Position Be Backfilled?: ${backFill}`, 20, startY + lineHeight * 7);
-            doc.text(`Direct Reports: ${directReport}`, 20, startY + lineHeight * 8);
-            doc.text(`Resignation Date: ${resigDate}`, 20, startY + lineHeight * 9);
-            
-            // Attachments Section
-            doc.setFontSize(14);
-            doc.text("Attachments", 20, startY + lineHeight * 10 + 10);
-            
-            doc.setFontSize(12);
-            doc.text(`1. Termination Letter: ${TL}`, 20, startY + lineHeight * 11 + 10);
-            doc.text(`2. Severance Document: ${SP}`, 20, startY + lineHeight * 12 + 10);
-        
-            // Save the PDF
-            doc.save("Termination_Form.pdf");
-        },
+            } else {
+                        // Section: Employee Details
+                        doc.setFontSize(14);
+                        doc.text("Employee Details", 20, 40);
+
+                        doc.setFontSize(12);
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Employee Number:", 20, 50);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(empNr, 60, 50);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Employee Name:", 20, 60);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(empName, 60, 60);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Last Contract Day:", 20, 70);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(selectedDate, 60, 70);
+
+                         // Section: Additional Information
+                        doc.setFontSize(14);
+                        doc.text("Additional Information", 20, 90);
+
+                        doc.setFontSize(12);
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Termination Reason:", 20, 100);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(TermReason, 70, 100);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Position Remaining:", 20, 110);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(PosR, 70, 110);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Regretted Loss:", 20, 120);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(Regret, 60, 120);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Position Backfill:", 20, 130);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(backFill, 60, 130);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Email:", 20, 140);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(email, 40, 140);
+
+                        // Section: Direct Reports
+                        doc.setFontSize(14);
+                        doc.text("Direct Reports", 20, 170);
+
+                        doc.setFontSize(12);
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Direct Report to:", 20, 180);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(directReport, 60, 180);
+
+                        // Section: Attachments
+                        doc.setFontSize(14);
+                        doc.text("Attachments", 20, 200);
+
+                        doc.setFontSize(12);
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Termination Letter ID:", 20, 210);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(TL, 70, 210);
+
+                        doc.setFont("Helvetica", "bold");
+                        doc.text("Severance Pay Document ID:", 20, 220);
+                        doc.setFont("Helvetica", "normal");
+                        doc.text(SP, 70, 220);
+
+                        // Save the PDF
+                        doc.save("Termination_Form.pdf");
+                    }
+                },
         // #endregion
 
         // #region Validation Checks

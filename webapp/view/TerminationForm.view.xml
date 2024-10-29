@@ -188,9 +188,10 @@
 										type="Default">
 									</Button>
 
-									<Button text="Generate Termination Form" press=".onGeneratePDF" />
+									<Button text="Generate Termination Form PDF" press=".onGeneratePDF" />
 									<Button text="Save Draft" />
 									<Button text="Trigger notification to works councils" />
+									<Button text="Generate Termination Form Word Document" press="onGenerateWordDoc" />
 
 						</OverflowToolbar>
 					</footer>
