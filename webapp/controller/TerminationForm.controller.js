@@ -375,7 +375,7 @@ function (Controller, MessageBox, Filter) {
             const empNr = this.getView().byId("empnr").getText();
             const empName = this.getView().byId("empname").getText();
             const selectedDate = this.getView().byId("datePicker").getValue();
-            const terminationReason = this.getView().byId("terminationReasonComboBox").getSelectedKey();
+            const terminationReason = this.getView().byId("terminationReasonComboBox").getValue();
             const email = this.getView().byId("Email").getValue();
             const directReport = this.getView().byId("searchField").getValue();
             const backFill = this.getView().byId("comboBox4").getValue();
@@ -384,6 +384,7 @@ function (Controller, MessageBox, Filter) {
             const regret = this.getView().byId("comboBox2").getValue();
             const TL = this.getView().byId("terminationLetter").getValue();
             const SP = this.getView().byId("calculationDocument").getValue();
+            
         
             // Retrieve team members size
             
@@ -442,7 +443,7 @@ function (Controller, MessageBox, Filter) {
                                         children: [
                                             new TextRun({ text: `Termination Reason: ${terminationReason}`, bold: true, size: 18 }),
                                             // Conditionally add Resignation Date
-                                            ...(terminationReason === "TERVCOMP" ? [
+                                            ...(terminationReason === "Vol Resignation to Competitor (TERVCOMP)" ? [
                                                 new TextRun({ text: ` Resignation Date: ${resigDate}`, break: 1, bold: true, size: 18 })
                                             ] : []),
                                             new TextRun({ text: ` Position Remaining: ${posR}`, break: 1, bold: true, size: 18 }),
