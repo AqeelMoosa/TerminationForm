@@ -533,7 +533,6 @@ function (Controller, MessageBox, Filter) {
             let resigDate = this.getView().byId("resignationDatePicker").getValue();
         
             // Retrieve team members size
-            const that = this; // store reference to this
             let teamMembersSize = 0; // initialize variable
             const oModel = this.getOwnerComponent().getModel();
             const sUserId = this._sUserId;
