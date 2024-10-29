@@ -360,87 +360,118 @@ function (Controller, MessageBox, Filter) {
 
         // #endregion
 
-        // #region GeneratePDF
+        // #region GenerateForms
 
         onGenerateWordDoc: function () {
+            // Check if the docx library is available
+            if (!window.docx) {
+                console.error("docx library is not loaded!");
+                return;
+            }
+        
             const { Document, Packer, Paragraph, TextRun } = window.docx;
         
-            // Initialize document
-            const doc = new Document();
+            // Get data from fields
+            const empNr = this.getView().byId("empnr").getText();
+            const empName = this.getView().byId("empname").getText();
+            const selectedDate = this.getView().byId("datePicker").getValue();
+            const terminationReason = this.getView().byId("terminationReasonComboBox").getSelectedKey();
+            const email = this.getView().byId("Email").getValue();
+            const directReport = this.getView().byId("searchField").getValue();
+            const backFill = this.getView().byId("comboBox4").getValue();
+            const resigDate = this.getView().byId("resignationDatePicker").getValue();
+            const posR = this.getView().byId("comboBox1").getValue();
+            const regret = this.getView().byId("comboBox2").getValue();
+            const TL = this.getView().byId("terminationLetter").getValue();
+            const SP = this.getView().byId("calculationDocument").getValue();
         
-            // Define sections in the document
-            const createHeading = (text) => new Paragraph({
-                text,
-                heading: "Heading1",
-                spacing: { after: 300 }
-            });
+            // Create a new Word document
+            const doc = new Document({
+                sections: [
+                    {
+                        properties: {},
+                        children: [
+                            // Main Title
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: "Employee Termination Form",
+                                        bold: true,
+                                        size: 28,
+                                        break: 1
+                                    })
+                                ],
+                                spacing: { after: 300 }
+                            }),
         
-            const createField = (label, value) => new Paragraph({
-                children: [
-                    new TextRun({
-                        text: label,
-                        bold: true
-                    }),
-                    new TextRun({
-                        text: ` ${value}`,
-                        break: 1,
-                    })
+                            // Employee Details Section
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: "Employee Details", bold: true, size: 24, break: 1 })
+                                ],
+                                spacing: { after: 200 }
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: `Employee Number: ${empNr}`, bold: true }),
+                                    new TextRun({ text: `\nEmployee Name: ${empName}`, break: 1, bold: true }),
+                                    new TextRun({ text: `\nLast Contract Day: ${selectedDate}`, break: 1, bold: true })
+                                ]
+                            }),
+        
+                            // Additional Information Section
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: "Additional Information", bold: true, size: 24, break: 1 })
+                                ],
+                                spacing: { after: 200 }
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: `Termination Reason: ${terminationReason}`, bold: true }),
+                                    new TextRun({ text: `\nResignation Date: ${resigDate}`, break: 1, bold: true }),
+                                    new TextRun({ text: `\nPosition Remaining: ${posR}`, break: 1, bold: true }),
+                                    new TextRun({ text: `\nRegretted Loss: ${regret}`, break: 1, bold: true }),
+                                    new TextRun({ text: `\nPosition Backfill: ${backFill}`, break: 1, bold: true }),
+                                    new TextRun({ text: `\nEmail: ${email}`, break: 1, bold: true })
+                                ]
+                            }),
+        
+                            // Direct Reports Section
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: "Direct Reports", bold: true, size: 24, break: 1 })
+                                ],
+                                spacing: { after: 200 }
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: `Direct Report to: ${directReport}`, bold: true })
+                                ]
+                            }),
+        
+                            // Attachments Section
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: "Attachments", bold: true, size: 24, break: 1 })
+                                ],
+                                spacing: { after: 200 }
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: `Termination Letter: ${TL}`, bold: true }),
+                                    new TextRun({ text: `\nSeverance Package Document: ${SP}`, break: 1, bold: true })
+                                ]
+                            })
+                        ]
+                    }
                 ]
             });
         
-            // Data fields
-            let empNr = this.getView().byId("empnr").getText();
-            let empName = this.getView().byId("empname").getText();
-            let selectedDate = this.getView().byId("datePicker").getValue();
-            let terminationReason = this.getView().byId("terminationReasonComboBox").getSelectedKey();
-            let resigDate = this.getView().byId("resignationDatePicker").getValue();
-            let posR = this.getView().byId("comboBox1").getValue();
-            let regret = this.getView().byId("comboBox2").getValue();
-            let backFill = this.getView().byId("comboBox4").getValue();
-            let email = this.getView().byId("Email").getValue();
-            let directReport = this.getView().byId("searchField").getValue();
-            let attachmentId = this.getView().byId("terminationLetter").getValue();
-            let attachmentId2 = this.getView().byId("calculationDocument").getValue();
-        
-            // Document structure
-            doc.addSection({
-                children: [
-                    // Title
-                    new Paragraph({
-                        text: "Termination Form",
-                        heading: "Title",
-                        spacing: { after: 400 }
-                    }),
-        
-                    // Employee Details Section
-                    createHeading("Employee Details"),
-                    createField("Employee Number:", empNr),
-                    createField("Employee Name:", empName),
-                    createField("Last Contract Day:", selectedDate),
-        
-                    // Additional Information Section
-                    createHeading("Additional Information"),
-                    createField("Termination Reason:", terminationReason),
-                    createField("Resignation Date:", resigDate),
-                    createField("Position Remaining:", posR),
-                    createField("Regretted Loss:", regret),
-                    createField("Position Backfill:", backFill),
-                    createField("Email:", email),
-        
-                    // Direct Reports Section
-                    createHeading("Direct Reports"),
-                    createField("Direct Report to:", directReport),
-        
-                    // Attachments Section
-                    createHeading("Attachments"),
-                    createField("Termination Letter ID:", attachmentId),
-                    createField("Severance Pay Document ID:", attachmentId2),
-                ],
-            });
-        
-            // Save document as a Word file
-            Packer.toBlob(doc).then((blob) => {
-                saveAs(blob, "Termination_Form.docx");
+            // Generate and download the Word document
+            Packer.toBlob(doc).then(blob => {
+                const fileName = "Termination_Form.docx";
+                saveAs(blob, fileName); // saveAs requires FileSaver.js or similar library
             });
         },
         
