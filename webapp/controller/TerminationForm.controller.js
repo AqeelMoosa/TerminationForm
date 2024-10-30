@@ -22,26 +22,58 @@ function (Controller, MessageBox, Filter) {
             const oReviewModel = new sap.ui.model.json.JSONModel();
             this.getView().setModel(oReviewModel, "reviewModel");
             
-            this.checkTeamMembersSize();
-            var oView = this.getView();
-			this.oSF = oView.byId("searchField");
+            //this.checkTeamMembersSize();
+            
 
-            //  const oDataModel = this.getOwnerComponent().getModel();
+            const oModel = this.getOwnerComponent().getModel();
+            const sUserId = this._sUserId;
 
-            // oDataModel.read(`/EmpJob`, {
-            //     urlParameters: {
-            //         "$filter": `userId eq '${this._sUserId}'`
-            //     },
-
-            //     success: (oData) => {
-            //         this._seqNum = oData.results[0].seqNumber
-            //         this._startDate = oData.results[0].startDate
-            //         this._pos = oData.results[0].position
+            oModel.read(`/User('${sUserId}')`, {
+                success: (oData) => {
+                    this.teamMemberSize = oData.teamMembersSize;
                     
+                    if (this.teamMemberSize >= 1) {
+                        // Hide or remove the Direct Reports step
+                        const directReportsStep = this.createDirectReportsStep();
+                        this._wizard.addStep(directReportsStep);
+                    }
+                },
+                error: function () {
+                    console.error("Failed to retrieve team member size.");
+                }
+            });
 
-            //     },
-            // });
+        },
 
+        createDirectReportsStep: function () {
+            // Define and return the "Direct Reports" step as a separate function
+            return new sap.m.WizardStep({
+                id: "OptionalInfoStep",
+                title: "Direct Reports",
+                validated: false,
+                content: [
+                    new sap.m.Label({
+                        text: "If employee had direct reports, to whom should they be moved?"
+                    }),
+                    new sap.m.SearchField({
+                        id: "searchField",
+                        width: "500px",
+                        class: "centeredFormContent",
+                        placeholder: "Search for...",
+                        enableSuggestions: true,
+                        suggest: this.onSuggest.bind(this),  // Define onSuggest in the controller
+                        change: this.DirectReportsValidation.bind(this),  // Define DirectReportsValidation in the controller
+                        suggestionItems: {
+                            path: 'UserModel>/',
+                            template: new sap.m.SuggestionItem({
+                                text: "{UserModel>name}",
+                                description: "({UserModel>EmpNr})",
+                                key: "{UserModel>EmpNr}"
+                            })
+                        }
+                    }),
+                ]
+            });
         },
 
 
@@ -55,67 +87,136 @@ function (Controller, MessageBox, Filter) {
             var oSelectedItem = oComboBox.getSelectedItem();
             var sSelectedKey = oSelectedItem.getKey();
 
-            if (sSelectedKey === "TERVCOMP"){
-                const oData = {
-                    persNo: oView.byId("empnr").getText(),
-                    employeeName: oView.byId("empname").getText(),
-                    selectedDate: oView.byId("datePicker").getValue(),
-                    uploadedDocuments : [
-                        {
-                            fileName: oTerminationLetterUploader.getValue(),
-                            type: "Termination Letter"
-                        },
-                        {
-                            fileName: oSeveranceDocUploader.getValue(),
-                            type: "Severance Pay Document"
-                        }
-                    ],
+            if (this.teamMemberSize >=1) {
+                if (sSelectedKey === "TERVCOMP"){
+                    const oData = {
+                        persNo: oView.byId("empnr").getText(),
+                        employeeName: oView.byId("empname").getText(),
+                        selectedDate: oView.byId("datePicker").getValue(),
+                        uploadedDocuments : [
+                            {
+                                fileName: oTerminationLetterUploader.getValue(),
+                                type: "Termination Letter"
+                            },
+                            {
+                                fileName: oSeveranceDocUploader.getValue(),
+                                type: "Severance Pay Document"
+                            }
+                        ],
+        
+                        termReas: oView.byId("terminationReasonComboBox").getSelectedItem().getText(),
+                        resigDate: oView.byId("resignationDatePicker").getValue(),
+                        posRemain: oView.byId("comboBox1").getSelectedItem().getText(),
+                        backFill: oView.byId("comboBox4").getSelectedItem().getText(),
+                        RegLoss: oView.byId("comboBox2").getSelectedItem().getText(),
+                        PersEmail: oView.byId("Email").getValue(),
+                        DirectRep: sap.ui.getCore().byId("searchField").getValue()
+                    };
     
-                    termReas: oView.byId("terminationReasonComboBox").getSelectedItem().getText(),
-                    resigDate: oView.byId("resignationDatePicker").getValue(),
-                    posRemain: oView.byId("comboBox1").getSelectedItem().getText(),
-                    backFill: oView.byId("comboBox4").getSelectedItem().getText(),
-                    RegLoss: oView.byId("comboBox2").getSelectedItem().getText(),
-                    PersEmail: oView.byId("Email").getValue(),
-                    DirectRep: oView.byId("searchField").getValue()
-                };
-
-                oView.byId("resignationDate").setVisible(true)
-                oView.byId("resigDatePicker").setVisible(true)
-                oView.getModel("reviewModel").setData(oData);
-                oView.getModel("reviewModel").refresh();
-                oView.byId("wizardNavContainer").to(oView.byId("ReviewPage"));
+                    oView.byId("resignationDate").setVisible(true)
+                    oView.byId("resigDatePicker").setVisible(true)
+                    oView.getModel("reviewModel").setData(oData);
+                    oView.getModel("reviewModel").refresh();
+                    oView.byId("wizardNavContainer").to(oView.byId("ReviewPage"));
+    
+                } else {
+                    const oData = {
+                        persNo: oView.byId("empnr").getText(),
+                        employeeName: oView.byId("empname").getText(),
+                        selectedDate: oView.byId("datePicker").getValue(),
+                        uploadedDocuments : [
+                            {
+                                fileName: oTerminationLetterUploader.getValue(),
+                                type: "Termination Letter"
+                            },
+                            {
+                                fileName: oSeveranceDocUploader.getValue(),
+                                type: "Severance Pay Document"
+                            }
+                        ],
+        
+                        termReas: oView.byId("terminationReasonComboBox").getSelectedItem().getText(),
+                        posRemain: oView.byId("comboBox1").getSelectedItem().getText(),
+                        backFill: oView.byId("comboBox4").getSelectedItem().getText(),
+                        RegLoss: oView.byId("comboBox2").getSelectedItem().getText(),
+                        PersEmail: oView.byId("Email").getValue(),
+                        DirectRep: sap.ui.getCore().byId("searchField").getValue()
+                    };
+                    
+                    oView.byId("resignationDate").setVisible(false)
+                    oView.byId("resigDatePicker").setVisible(false)
+                    oView.getModel("reviewModel").setData(oData);
+                    oView.getModel("reviewModel").refresh();
+                    oView.byId("wizardNavContainer").to(oView.byId("ReviewPage"));
+                }
 
             } else {
-                const oData = {
-                    persNo: oView.byId("empnr").getText(),
-                    employeeName: oView.byId("empname").getText(),
-                    selectedDate: oView.byId("datePicker").getValue(),
-                    uploadedDocuments : [
-                        {
-                            fileName: oTerminationLetterUploader.getValue(),
-                            type: "Termination Letter"
-                        },
-                        {
-                            fileName: oSeveranceDocUploader.getValue(),
-                            type: "Severance Pay Document"
-                        }
-                    ],
+                if (sSelectedKey === "TERVCOMP"){
+                    const oData = {
+                        persNo: oView.byId("empnr").getText(),
+                        employeeName: oView.byId("empname").getText(),
+                        selectedDate: oView.byId("datePicker").getValue(),
+                        uploadedDocuments : [
+                            {
+                                fileName: oTerminationLetterUploader.getValue(),
+                                type: "Termination Letter"
+                            },
+                            {
+                                fileName: oSeveranceDocUploader.getValue(),
+                                type: "Severance Pay Document"
+                            }
+                        ],
+        
+                        termReas: oView.byId("terminationReasonComboBox").getSelectedItem().getText(),
+                        resigDate: oView.byId("resignationDatePicker").getValue(),
+                        posRemain: oView.byId("comboBox1").getSelectedItem().getText(),
+                        backFill: oView.byId("comboBox4").getSelectedItem().getText(),
+                        RegLoss: oView.byId("comboBox2").getSelectedItem().getText(),
+                        PersEmail: oView.byId("Email").getValue(),
+                        //DirectRep: sap.ui.getCore().byId("searchField").getValue()
+                    };
+                    
+                    oView.byId("DirectReportsReview").setVisible(false)
+                    oView.byId("resignationDate").setVisible(true)
+                    oView.byId("resigDatePicker").setVisible(true)
+                    oView.getModel("reviewModel").setData(oData);
+                    oView.getModel("reviewModel").refresh();
+                    oView.byId("wizardNavContainer").to(oView.byId("ReviewPage"));
     
-                    termReas: oView.byId("terminationReasonComboBox").getSelectedItem().getText(),
-                    posRemain: oView.byId("comboBox1").getSelectedItem().getText(),
-                    backFill: oView.byId("comboBox4").getSelectedItem().getText(),
-                    RegLoss: oView.byId("comboBox2").getSelectedItem().getText(),
-                    PersEmail: oView.byId("Email").getValue(),
-                    DirectRep: oView.byId("searchField").getValue()
-                };
-                
-                oView.byId("resignationDate").setVisible(false)
-                oView.byId("resigDatePicker").setVisible(false)
-                oView.getModel("reviewModel").setData(oData);
-                oView.getModel("reviewModel").refresh();
-                oView.byId("wizardNavContainer").to(oView.byId("ReviewPage"));
+                } else {
+                    const oData = {
+                        persNo: oView.byId("empnr").getText(),
+                        employeeName: oView.byId("empname").getText(),
+                        selectedDate: oView.byId("datePicker").getValue(),
+                        uploadedDocuments : [
+                            {
+                                fileName: oTerminationLetterUploader.getValue(),
+                                type: "Termination Letter"
+                            },
+                            {
+                                fileName: oSeveranceDocUploader.getValue(),
+                                type: "Severance Pay Document"
+                            }
+                        ],
+        
+                        termReas: oView.byId("terminationReasonComboBox").getSelectedItem().getText(),
+                        posRemain: oView.byId("comboBox1").getSelectedItem().getText(),
+                        backFill: oView.byId("comboBox4").getSelectedItem().getText(),
+                        RegLoss: oView.byId("comboBox2").getSelectedItem().getText(),
+                        PersEmail: oView.byId("Email").getValue(),
+                        //DirectRep: sap.ui.getCore().byId("searchField").getValue()
+                    };
+                    
+                    oView.byId("DirectReportsReview").setVisible(false)
+                    oView.byId("resignationDate").setVisible(false)
+                    oView.byId("resigDatePicker").setVisible(false)
+                    oView.getModel("reviewModel").setData(oData);
+                    oView.getModel("reviewModel").refresh();
+                    oView.byId("wizardNavContainer").to(oView.byId("ReviewPage"));
+                }
             }
+
+            
 
 
             
@@ -316,191 +417,328 @@ function (Controller, MessageBox, Filter) {
         // #endregion
         
         // #region Dynamic Direct Reports
-        checkTeamMembersSize: function () {
-            const that = this;
-            const oModel = this.getOwnerComponent().getModel();
-            const sUserId = this._sUserId;  // Assuming user ID is available in the controller context
-            //const oWizard = this.getView().byId("CreateProductWizard")
+        // checkTeamMembersSize: function () {
+        //     const that = this;
+        //     const oModel = this.getOwnerComponent().getModel();
+        //     const sUserId = this._sUserId;  // Assuming user ID is available in the controller context
+        //     //const oWizard = this.getView().byId("CreateProductWizard")
 
-            // Read User entity to get the teamMembersSize property
-            oModel.read(`/User('${sUserId}')`, {
-                success: function (oData) {
-                    const iTeamMembersSize = oData.teamMembersSize;
-                    //console.log(iTeamMembersSize)
-                   // const email = that.getView().byId("Email")
-                    //const emailValue = email.getValue()
+        //     // Read User entity to get the teamMembersSize property
+        //     oModel.read(`/User('${sUserId}')`, {
+        //         success: function (oData) {
+        //             const iTeamMembersSize = oData.teamMembersSize;
+        //             //console.log(iTeamMembersSize)
+        //            // const email = that.getView().byId("Email")
+        //             //const emailValue = email.getValue()
 
 
-                    // Check if teamMembersSize is 1 or greater
-                    if (iTeamMembersSize >= 1) {
-                        // Show the label and textbox if condition is met
-                        that.getView().byId("directReplbl").setVisible(true);
-                        that.getView().byId("searchField").setVisible(true);
-                        that.getView().byId("OptionalInfoStep").setVisible(true)
-                        that.getView().byId("DirectReportsReview").setVisible(true)
+        //             // Check if teamMembersSize is 1 or greater
+        //             // if (iTeamMembersSize >= 1) {
+        //             //     // Show the label and textbox if condition is met
+        //             //     that.getView().byId("directReplbl").setVisible(true);
+        //             //     that.getView().byId("searchField").setVisible(true);
+        //             //     that.getView().byId("OptionalInfoStep").setVisible(true)
+        //             //     that.getView().byId("DirectReportsReview").setVisible(true)
 
-                    } else {
-                        // Hide the label and textbox otherwise
-                        that.getView().byId("directReplbl").setVisible(false);
-                        that.getView().byId("searchField").setVisible(false);
-                        that.getView().byId("OptionalInfoStep").setVisible(true).setValidated(true)
-                        that.getView().byId("NoDirectReports").setText("Employee has no Direct Reports").setVisible(true)
-                        that.getView().byId("DirectReportsReview").setVisible(false)
-                    }
-                },
-                error: function (oError) {
-                    console.error("Error fetching User entity:", oError);
-                    sap.m.MessageBox.show("User Not Found", {
-                        icon: sap.m.MessageBox.Icon.ERROR,
-                        title: "Warning!"
-                    });
-                }
-            });
-        },
+        //             // } else {
+        //             //     // Hide the label and textbox otherwise
+        //             //    // that.getView().byId("directReplbl").setVisible(false);
+        //             //     that.getView().byId("searchField").setVisible(false);
+        //             //     that.getView().byId("OptionalInfoStep").setVisible(true).setValidated(true)
+        //             //     that.getView().byId("NoDirectReports").setText("Employee has no Direct Reports").setVisible(true)
+        //             //     that.getView().byId("DirectReportsReview").setVisible(false)
+        //             // }
+        //         },
+        //         error: function (oError) {
+        //             console.error("Error fetching User entity:", oError);
+        //             sap.m.MessageBox.show("User Not Found", {
+        //                 icon: sap.m.MessageBox.Icon.ERROR,
+        //                 title: "Warning!"
+        //             });
+        //         }
+        //     });
+        // },
 
         // #endregion
 
         // #region GenerateForms
 
         onGenerateWordDoc: function () {
-            // Check if the docx library is available
             if (!window.docx) {
                 console.error("docx library is not loaded!");
                 return;
             }
         
-            const { Document, Packer, Paragraph, TextRun } = window.docx;
-        
-            // Get data from fields
-            const empNr = this.getView().byId("empnr").getText();
-            const empName = this.getView().byId("empname").getText();
-            const selectedDate = this.getView().byId("datePicker").getValue();
-            const terminationReason = this.getView().byId("terminationReasonComboBox").getValue();
-            const email = this.getView().byId("Email").getValue();
-            const directReport = this.getView().byId("searchField").getValue();
-            const backFill = this.getView().byId("comboBox4").getValue();
-            const resigDate = this.getView().byId("resignationDatePicker").getValue();
-            const posR = this.getView().byId("comboBox1").getValue();
-            const regret = this.getView().byId("comboBox2").getValue();
-            const TL = this.getView().byId("terminationLetter").getValue();
-            const SP = this.getView().byId("calculationDocument").getValue();
+            const { Document, Packer, Paragraph, TextRun, HeadingLevel } = window.docx;
+
+            if (this.teamMemberSize >=1 ) {
+                const empNr = this.getView().byId("empnr").getText();
+                const empName = this.getView().byId("empname").getText();
+                const selectedDate = this.getView().byId("datePicker").getValue();
+                const terminationReason = this.getView().byId("terminationReasonComboBox").getValue();
+                const email = this.getView().byId("Email").getValue();
+                const directReport = sap.ui.getCore().byId("searchField").getValue();
+                const backFill = this.getView().byId("comboBox4").getValue();
+                const resigDate = this.getView().byId("resignationDatePicker").getValue();
+                const posR = this.getView().byId("comboBox1").getValue();
+                const regret = this.getView().byId("comboBox2").getValue();
+                const TL = this.getView().byId("terminationLetter").getValue();
+                const SP = this.getView().byId("calculationDocument").getValue();
             
-        
-            // Retrieve team members size
+                let teamMembersSize = 0;
+                const oModel = this.getOwnerComponent().getModel();
+                const sUserId = this._sUserId;
             
-            let teamMembersSize = 0; // initialize variable
-            const oModel = this.getOwnerComponent().getModel();
-            const sUserId = this._sUserId;
-        
-            oModel.read(`/User('${sUserId}')`, {
-                success: function (oData) {
-                    teamMembersSize = oData.teamMembersSize;
-        
-                    // Create a new Word document
-                    const doc = new Document({
-                        sections: [
-                            {
-                                properties: {},
-                                children: [
-                                    // Main Title
-                                    new Paragraph({
-                                        children: [
-                                            new TextRun({
-                                                text: "Employee Termination Form",
-                                                bold: true,
-                                                underline: true,
-                                                size: 28,
-                                                break: 1
-                                            })
-                                        ],
-                                        spacing: { after: 300 }
-                                    }),
-        
-                                    // Employee Details Section
-                                    new Paragraph({
-                                        children: [
-                                            new TextRun({ text: "Employee Details", bold: true, underline: true, size: 24, break: 1 })
-                                        ],
-                                        spacing: { after: 200 }
-                                    }),
-                                    new Paragraph({
-                                        children: [
-                                            new TextRun({ text: `Employee Number: ${empNr}`, bold: true, size: 18 }),
-                                            new TextRun({ text: ` Employee Name: ${empName}`, break: 1, bold: true, size: 18 }),
-                                            new TextRun({ text: ` Last Contract Day: ${selectedDate}`, break: 1, bold: true, size: 18 })
-                                        ],
-                                        spacing: { after: 100 } // Add spacing between the label-value pairs
-                                    }),
-        
-                                    // Additional Information Section
-                                    new Paragraph({
-                                        children: [
-                                            new TextRun({ text: "Additional Information", bold: true, underline: true, size: 24, break: 1 })
-                                        ],
-                                        spacing: { after: 200 }
-                                    }),
-                                    new Paragraph({
-                                        children: [
-                                            new TextRun({ text: `Termination Reason: ${terminationReason}`, bold: true, size: 18 }),
-                                            // Conditionally add Resignation Date
-                                            ...(terminationReason === "Vol Resignation to Competitor (TERVCOMP)" ? [
-                                                new TextRun({ text: ` Resignation Date: ${resigDate}`, break: 1, bold: true, size: 18 })
-                                            ] : []),
-                                            new TextRun({ text: ` Position Remaining: ${posR}`, break: 1, bold: true, size: 18 }),
-                                            new TextRun({ text: ` Regretted Loss: ${regret}`, break: 1, bold: true, size: 18 }),
-                                            new TextRun({ text: ` Position Backfill: ${backFill}`, break: 1, bold: true, size: 18 }),
-                                            new TextRun({ text: ` Email: ${email}`, break: 1, bold: true, size: 18 })
-                                        ],
-                                        spacing: { after: 100 } // Add spacing between the label-value pairs
-                                    }),
-        
-                                    // Direct Reports Section
-                                    // Only add this section if team members size is >= 1
-                                    ...(teamMembersSize >= 1 ? [
+                oModel.read(`/User('${sUserId}')`, {
+                    success: function (oData) {
+                        teamMembersSize = oData.teamMembersSize;
+            
+                        const doc = new Document({
+                            sections: [
+                                {
+                                    properties: {},
+                                    children: [
+                                        // Main Title (Heading 1)
                                         new Paragraph({
+                                            text: "",
+                                            heading: HeadingLevel.HEADING_1,
+                                            alignment: "center",
                                             children: [
-                                                new TextRun({ text: "Direct Reports", bold: true, underline: true, size: 24, break: 1 })
+                                                new TextRun({
+                                                    text: "Employee Termination Form",
+                                                    bold: true,
+                                                    underline: true,
+                                                    size: 36, // Larger font for main heading
+                                                }),
                                             ],
-                                            spacing: { after: 200 }
+                                            spacing: { after: 300 },
+                                        }),
+                                        new Paragraph({
+                                            text: "", // Horizontal line
+                                            border: {
+                                                bottom: {
+                                                    color: "auto",
+                                                    space: 1,
+                                                    size: 6,
+                                                },
+                                            },
+                                        }),
+            
+                                        // Employee Details Section (Heading 2)
+                                        new Paragraph({
+                                            text: "1. Employee Details",
+                                            heading: HeadingLevel.HEADING_2,
+                                            spacing: { after: 200 },
                                         }),
                                         new Paragraph({
                                             children: [
-                                                new TextRun({ text: `Direct Report to: ${directReport}`, bold: true, size: 18 })
+                                                new TextRun({ text: `1.1 Employee Number: ${empNr}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `1.2 Employee Name: ${empName}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `1.3 Last Contract Day: ${selectedDate}`, break: 1, size: 24 }),
+                                                
                                             ],
-                                            spacing: { after: 100 } // Add spacing
-                                        })
-                                    ] : []),
-        
-                                    // Attachments Section
-                                    new Paragraph({
-                                        children: [
-                                            new TextRun({ text: "Attachments", bold: true, underline: true, size: 24, break: 1 })
-                                        ],
-                                        spacing: { after: 200 }
-                                    }),
-                                    new Paragraph({
-                                        children: [
-                                            new TextRun({ text: `Termination Letter: ${TL}`, bold: true, size: 18 }),
-                                            new TextRun({ text: ` Severance Package Document: ${SP}`, break: 1, bold: true, size: 18 })
-                                        ],
-                                        spacing: { after: 100 } // Add spacing
-                                    })
-                                ]
-                            }
-                        ]
-                    });
-        
-                    // Generate and download the Word document
-                    Packer.toBlob(doc).then(blob => {
-                        const fileName = "Termination_Form.docx";
-                        saveAs(blob, fileName); // saveAs requires FileSaver.js or similar library
-                    });
-                },
-                error: function () {
-                    console.error("Failed to retrieve team member size.");
-                }
-            });
+                                            spacing: { after: 200 },
+                                        }),
+            
+                                        // Additional Information Section (Heading 2)
+                                        new Paragraph({
+                                            text: "2. Additional Information",
+                                            heading: HeadingLevel.HEADING_2,
+                                            spacing: { after: 200 },
+                                        }),
+                                        new Paragraph({
+                                            children: [
+                                                new TextRun({ text: `2.1 Termination Reason: ${terminationReason}`, break: 1, size: 24 }),
+                                                ...(terminationReason === "Vol Resignation to Competitor (TERVCOMP)" ? [
+                                                    new TextRun({ text: `2.2 Resignation Date: ${resigDate}`, break: 1, size: 24 })
+                                                ] : []),
+                                                new TextRun({ text: `2.3 Position Remaining: ${posR}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `2.4 Regretted Loss: ${regret}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `2.5 Position Backfill: ${backFill}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `2.6 Email: ${email}`, break: 1, size: 24 }),
+                                            ],
+                                            spacing: { after: 200 },
+                                        }),
+            
+                                        // Direct Reports Section (Heading 2)
+                                        ...(teamMembersSize >= 1 ? [
+                                            new Paragraph({
+                                                text: "3. Direct Reports",
+                                                heading: HeadingLevel.HEADING_2,
+                                                spacing: { after: 200 },
+                                            }),
+                                            new Paragraph({
+                                                children: [
+                                                    new TextRun({ text: `3.1 Direct Report to: ${directReport}`, break: 1, size: 24 }),
+                                                ],
+                                                spacing: { after: 200 },
+                                            })
+                                        ] : []),
+            
+                                        // Attachments Section (Heading 2)
+                                        new Paragraph({
+                                            text: "4. Attachments",
+                                            heading: HeadingLevel.HEADING_2,
+                                            spacing: { after: 200 },
+                                        }),
+                                        new Paragraph({
+                                            children: [
+                                                new TextRun({ text: `4.1 Termination Letter: ${TL}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `4.2 Severance Package Document: ${SP}`, break: 1, size: 24 }),
+                                            ],
+                                            spacing: { after: 200 },
+                                        }),
+                                    ],
+                                },
+                            ],
+                        });
+            
+                        Packer.toBlob(doc).then(blob => {
+                            const fileName = "Termination_Form.docx";
+                            saveAs(blob, fileName);
+                        });
+                    },
+                    error: function () {
+                        console.error("Failed to retrieve team member size.");
+                    },
+                });
+            
+            } else {
+                const empNr = this.getView().byId("empnr").getText();
+                const empName = this.getView().byId("empname").getText();
+                const selectedDate = this.getView().byId("datePicker").getValue();
+                const terminationReason = this.getView().byId("terminationReasonComboBox").getValue();
+                const email = this.getView().byId("Email").getValue();
+               // const directReport = sap.ui.getCore().byId("searchField").getValue();
+                const backFill = this.getView().byId("comboBox4").getValue();
+                const resigDate = this.getView().byId("resignationDatePicker").getValue();
+                const posR = this.getView().byId("comboBox1").getValue();
+                const regret = this.getView().byId("comboBox2").getValue();
+                const TL = this.getView().byId("terminationLetter").getValue();
+                const SP = this.getView().byId("calculationDocument").getValue();
+            
+                let teamMembersSize = 0;
+                const oModel = this.getOwnerComponent().getModel();
+                const sUserId = this._sUserId;
+            
+                oModel.read(`/User('${sUserId}')`, {
+                    success: function (oData) {
+                        teamMembersSize = oData.teamMembersSize;
+            
+                        const doc = new Document({
+                            sections: [
+                                {
+                                    properties: {},
+                                    children: [
+                                        // Main Title (Heading 1)
+                                        new Paragraph({
+                                            text: "",
+                                            heading: HeadingLevel.HEADING_1,
+                                            alignment: "center",
+                                            children: [
+                                                new TextRun({
+                                                    text: "Employee Termination Form",
+                                                    bold: true,
+                                                    underline: true,
+                                                    size: 36, // Larger font for main heading
+                                                }),
+                                            ],
+                                            spacing: { after: 300 },
+                                        }),
+                                        new Paragraph({
+                                            text: "", // Horizontal line
+                                            border: {
+                                                bottom: {
+                                                    color: "auto",
+                                                    space: 1,
+                                                    size: 6,
+                                                },
+                                            },
+                                        }),
+            
+                                        // Employee Details Section (Heading 2)
+                                        new Paragraph({
+                                            text: "1. Employee Details",
+                                            heading: HeadingLevel.HEADING_2,
+                                            spacing: { after: 200 },
+                                        }),
+                                        new Paragraph({
+                                            children: [
+                                                new TextRun({ text: `1.1 Employee Number: ${empNr}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `1.2 Employee Name: ${empName}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `1.3 Last Contract Day: ${selectedDate}`, break: 1, size: 24 }),
+                                                
+                                            ],
+                                            spacing: { after: 200 },
+                                        }),
+            
+                                        // Additional Information Section (Heading 2)
+                                        new Paragraph({
+                                            text: "2. Additional Information",
+                                            heading: HeadingLevel.HEADING_2,
+                                            spacing: { after: 200 },
+                                        }),
+                                        new Paragraph({
+                                            children: [
+                                                new TextRun({ text: `2.1 Termination Reason: ${terminationReason}`, break: 1, size: 24 }),
+                                                ...(terminationReason === "Vol Resignation to Competitor (TERVCOMP)" ? [
+                                                    new TextRun({ text: `2.2 Resignation Date: ${resigDate}`, break: 1, size: 24 })
+                                                ] : []),
+                                                new TextRun({ text: `2.3 Position Remaining: ${posR}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `2.4 Regretted Loss: ${regret}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `2.5 Position Backfill: ${backFill}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `2.6 Email: ${email}`, break: 1, size: 24 }),
+                                            ],
+                                            spacing: { after: 200 },
+                                        }),
+            
+                                        // Direct Reports Section (Heading 2)
+                                        ...(teamMembersSize >= 1 ? [
+                                            new Paragraph({
+                                                text: "3. Direct Reports",
+                                                heading: HeadingLevel.HEADING_2,
+                                                spacing: { after: 200 },
+                                            }),
+                                            new Paragraph({
+                                                children: [
+                                                    new TextRun({ text: `3.1 Direct Report to: ${directReport}`, break: 1, size: 24 }),
+                                                ],
+                                                spacing: { after: 200 },
+                                            })
+                                        ] : []),
+            
+                                        // Attachments Section (Heading 2)
+                                        new Paragraph({
+                                            text: "4. Attachments",
+                                            heading: HeadingLevel.HEADING_2,
+                                            spacing: { after: 200 },
+                                        }),
+                                        new Paragraph({
+                                            children: [
+                                                new TextRun({ text: `4.1 Termination Letter: ${TL}`, break: 1, size: 24 }),
+                                                new TextRun({ text: `4.2 Severance Package Document: ${SP}`, break: 1, size: 24 }),
+                                            ],
+                                            spacing: { after: 200 },
+                                        }),
+                                    ],
+                                },
+                            ],
+                        });
+            
+                        Packer.toBlob(doc).then(blob => {
+                            const fileName = "Termination_Form.docx";
+                            saveAs(blob, fileName);
+                        });
+                    },
+                    error: function () {
+                        console.error("Failed to retrieve team member size.");
+                    },
+                });
+            }
+
+            
         },
+        
         
         
         
@@ -518,6 +756,10 @@ function (Controller, MessageBox, Filter) {
             }
             
             const doc = new jsPDF();
+
+            if (this.teamMemberSize >= 1) {
+
+            }
             
             // Get data from fields
             let empNr = this.getView().byId("empnr").getText();
@@ -527,7 +769,7 @@ function (Controller, MessageBox, Filter) {
             let SP = this.getView().byId("calculationDocument").getValue();
             let PosR = this.getView().byId("comboBox1").getValue();
             let Regret = this.getView().byId("comboBox2").getValue();
-            let directReport = this.getView().byId("searchField").getValue();
+            
             let email = this.getView().byId("Email").getValue();
             let TermReason = this.getView().byId("terminationReasonComboBox").getValue();
             let backFill = this.getView().byId("comboBox4").getValue();
@@ -748,8 +990,8 @@ function (Controller, MessageBox, Filter) {
         },
 
         DirectReportsValidation: function() {
-            const fourthWiz = this.getView().byId("OptionalInfoStep")
-            const directR = this.getView().byId("searchField").getValue()
+            const fourthWiz = sap.ui.getCore().byId("OptionalInfoStep")
+            const directR =  sap.ui.getCore().byId("searchField").getValue();
 
             if (directR) {
                 fourthWiz.setValidated(true)
@@ -922,8 +1164,12 @@ function (Controller, MessageBox, Filter) {
 				];
 			}
 
-			this.oSF.getBinding("suggestionItems").filter(aFilters);
-			this.oSF.suggest();
+			const oSearchField = sap.ui.getCore().byId("searchField");
+
+            if (oSearchField) {
+                oSearchField.getBinding("suggestionItems").filter(aFilters);
+                oSearchField.suggest(); // Trigger the suggestion list to open
+            }
 		},
         // #endregion
 
@@ -1115,7 +1361,7 @@ function (Controller, MessageBox, Filter) {
                         this.getView().byId("comboBox4").setValue("")
                         this.getView().byId("comboBox2").setValue("")
                         this.getView().byId("Email").setValue("")
-                        this.getView().byId("searchField").setValue("")
+                        sap.ui.getCore().byId("searchField").setValue("")
 					}
 				}.bind(this)
 			});
@@ -1136,7 +1382,7 @@ function (Controller, MessageBox, Filter) {
 
             let PosR = that.getView().byId("comboBox1").getValue();
             let Regret = that.getView().byId("comboBox2").getValue();
-            let directReport = that.getView().byId("searchField").getValue();
+            let directReport = sap.ui.getCore().byId("searchField").getValue();
             let email = that.getView().byId("Email").getValue();
             let TermReason = that.getView().byId("terminationReasonComboBox").getValue();
             let backFill = that.getView().byId("comboBox4").getValue();

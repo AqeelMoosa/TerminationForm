@@ -97,23 +97,6 @@
 											<Input placeholder="example123@gmail.com" id="Email" change="EmailValidation" width="500px"/>
 									</f:SimpleForm>
 								</WizardStep> 
-
-								<WizardStep id="OptionalInfoStep" validated="false" activate="optionalStepActivation" title="Direct Reports" visible="true" class="centeredFormContent">
-									<Label text="If employee had direct reports, to who should they be moved?" id="directReplbl" visible="true" />
-									<Label text="" id="NoDirectReports" visible="false" />
-										<SearchField visible="true"
-											id="searchField"
-											width="500px"
-											placeholder="Search for..."
-											enableSuggestions="true"
-											suggest=".onSuggest"
-											change="DirectReportsValidation"
-											suggestionItems="{
-												path: 'UserModel>/'
-											}">
-												<SuggestionItem text="{UserModel>name}" description="({path:'UserModel>EmpNr'})" key="{UserModel>EmpNr}" />
-										</SearchField>
-								</WizardStep>
 						</Wizard>
 				</content>
 					<footer>
