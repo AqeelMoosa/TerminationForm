@@ -758,10 +758,210 @@ function (Controller, MessageBox, Filter) {
             const doc = new jsPDF();
 
             if (this.teamMemberSize >= 1) {
-
-            }
+                let empNr = this.getView().byId("empnr").getText();
+                let empName = this.getView().byId("empname").getText();
+                let selectedDate = this.getView().byId("datePicker").getValue();
+                let TL = this.getView().byId("terminationLetter").getValue();
+                let SP = this.getView().byId("calculationDocument").getValue();
+                let PosR = this.getView().byId("comboBox1").getValue();
+                let Regret = this.getView().byId("comboBox2").getValue();
+                let directReport = sap.ui.getCore().byId("searchField").getValue();
+                let email = this.getView().byId("Email").getValue();
+                let TermReason = this.getView().byId("terminationReasonComboBox").getValue();
+                let backFill = this.getView().byId("comboBox4").getValue();
+                let resigDate = this.getView().byId("resignationDatePicker").getValue();
             
-            // Get data from fields
+                // Retrieve team members size
+                let teamMembersSize = 0; // initialize variable
+                const oModel = this.getOwnerComponent().getModel();
+                const sUserId = this._sUserId;
+            
+                oModel.read(`/User('${sUserId}')`, {
+                    success: function (oData) {
+                        teamMembersSize = oData.teamMembersSize;
+            
+                        // Define PDF content
+                        doc.setFont("Helvetica", "normal");
+                        doc.setFontSize(16);
+                        doc.text("Termination Form", 20, 20);
+                        doc.setDrawColor(0, 0, 0);
+                        doc.line(10, 25, 200, 25);  // Line under title
+                        
+                        // Define text positioning for details
+                        doc.setFontSize(12);
+                        doc.setTextColor(0); // Reset color to black
+            
+                        if (sSelectedKey === "TERVCOMP") {
+                            // Section: Employee Details
+                            doc.setFontSize(14);
+                            doc.text("Employee Details", 20, 40);
+                            
+                            doc.setFontSize(12);
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Employee Number:", 20, 50);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(empNr, 60, 50);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Employee Name:", 20, 60);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(empName, 60, 60);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Last Contract Day:", 20, 70);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(selectedDate, 60, 70);
+                            
+                            // Section: Additional Information
+                            doc.setFontSize(14);
+                            doc.text("Additional Information", 20, 90);
+                            
+                            doc.setFontSize(12);
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Termination Reason:", 20, 100);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(TermReason, 70, 100);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Resignation Date:", 20, 110);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(resigDate, 60, 110);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Position Remaining:", 20, 120);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(PosR, 70, 120);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Regretted Loss:", 20, 130);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(Regret, 60, 130);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Position Backfill:", 20, 140);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(backFill, 60, 140);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Email:", 20, 150);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(email, 40, 150);
+                            
+                            // Section: Direct Reports (only if team members size >= 1)
+                            if (teamMembersSize >= 1) {
+                                doc.setFontSize(14);
+                                doc.text("Direct Reports", 20, 170);
+                                
+                                doc.setFontSize(12);
+                                doc.setFont("Helvetica", "bold");
+                                doc.text("Direct Report to:", 20, 180);
+                                doc.setFont("Helvetica", "normal");
+                                doc.text(directReport, 60, 180);
+                            }
+            
+                            // Section: Attachments
+                            doc.setFontSize(14);
+                            doc.text("Attachments", 20, 200);
+                            
+                            doc.setFontSize(12);
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Termination Letter ID:", 20, 210);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(TL, 70, 210);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Severance Pay Document ID:", 20, 220);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(SP, 90, 220);
+                        } else {
+                            // Section: Employee Details
+                            doc.setFontSize(14);
+                            doc.text("Employee Details", 20, 40);
+                            
+                            doc.setFontSize(12);
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Employee Number:", 20, 50);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(empNr, 60, 50);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Employee Name:", 20, 60);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(empName, 60, 60);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Last Contract Day:", 20, 70);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(selectedDate, 60, 70);
+                            
+                            // Section: Additional Information
+                            doc.setFontSize(14);
+                            doc.text("Additional Information", 20, 90);
+                            
+                            doc.setFontSize(12);
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Termination Reason:", 20, 100);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(TermReason, 70, 100);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Position Remaining:", 20, 110);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(PosR, 70, 110);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Regretted Loss:", 20, 120);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(Regret, 60, 120);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Position Backfill:", 20, 130);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(backFill, 60, 130);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Email:", 20, 140);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(email, 40, 140);
+                            
+                            // Section: Direct Reports (only if team members size >= 1)
+                            if (teamMembersSize >= 1) {
+                                doc.setFontSize(14);
+                                doc.text("Direct Reports", 20, 170);
+                                
+                                doc.setFontSize(12);
+                                doc.setFont("Helvetica", "bold");
+                                doc.text("Direct Report to:", 20, 180);
+                                doc.setFont("Helvetica", "normal");
+                                doc.text(directReport, 60, 180);
+                            }
+            
+                            // Section: Attachments
+                            doc.setFontSize(14);
+                            doc.text("Attachments", 20, 200);
+                            
+                            doc.setFontSize(12);
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Termination Letter ID:", 20, 210);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(TL, 70, 210);
+                            
+                            doc.setFont("Helvetica", "bold");
+                            doc.text("Severance Pay Document ID:", 20, 220);
+                            doc.setFont("Helvetica", "normal");
+                            doc.text(SP, 70, 220);
+                        }
+            
+                        // Save the PDF
+                        doc.save("Termination_Form.pdf");
+                    },
+                    error: function () {
+                        console.error("Failed to read user data");
+                    }
+                });
+            } else  //main one 
+            
+            {
             let empNr = this.getView().byId("empnr").getText();
             let empName = this.getView().byId("empname").getText();
             let selectedDate = this.getView().byId("datePicker").getValue();
@@ -769,7 +969,7 @@ function (Controller, MessageBox, Filter) {
             let SP = this.getView().byId("calculationDocument").getValue();
             let PosR = this.getView().byId("comboBox1").getValue();
             let Regret = this.getView().byId("comboBox2").getValue();
-            
+           // let directReport = sap.ui.getCore().byId("searchField").getValue();
             let email = this.getView().byId("Email").getValue();
             let TermReason = this.getView().byId("terminationReasonComboBox").getValue();
             let backFill = this.getView().byId("comboBox4").getValue();
@@ -963,6 +1163,10 @@ function (Controller, MessageBox, Filter) {
                     console.error("Failed to read user data");
                 }
             });
+            }
+           
+            // Get data from fields
+            
         },
         // #endregion
 
