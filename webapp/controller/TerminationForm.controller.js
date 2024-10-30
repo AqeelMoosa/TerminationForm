@@ -414,6 +414,31 @@ function (Controller, MessageBox, Filter) {
                 });
             }
         },
+
+        uploadToSuccessFactors: function (base64String, fileName) {
+            const oModel = this.getOwnerComponent().getModel();
+        
+            const attachmentData = {
+                "__metadata": {
+                        "type": "SFOData.Attachment"
+                    },
+
+                    "fileName": fileName,
+                    "fileContent": base64String,
+                    "module": "GENERIC_OBJECT",
+                    "userId": "Technical"
+            };
+        
+            // Example API endpoint for SuccessFactors Attachment entity
+            oModel.create("/Attachment", attachmentData, {
+                success: function (odata) {
+                    console.log("Document uploaded successfully. Attachment ID:", odata.attachmentId);
+                },
+                error: function (oError) {
+                    console.error("Error uploading document:", oError);
+                }
+            });
+        },
         // #endregion
         
         // #region Dynamic Direct Reports
@@ -463,13 +488,14 @@ function (Controller, MessageBox, Filter) {
 
         // #region GenerateForms
 
-        onGenerateWordDoc: function () {
+        onGenerateWordDoc: function (oEvent) {
             if (!window.docx) {
                 console.error("docx library is not loaded!");
                 return;
             }
         
             const { Document, Packer, Paragraph, TextRun, HeadingLevel } = window.docx;
+            const that = this;
 
             if (this.teamMemberSize >=1 ) {
                 const empNr = this.getView().byId("empnr").getText();
@@ -596,6 +622,7 @@ function (Controller, MessageBox, Filter) {
                         Packer.toBlob(doc).then(blob => {
                             const fileName = "Termination_Form.docx";
                             saveAs(blob, fileName);
+                            console.log(oEvent)
                         });
                     },
                     error: function () {
@@ -728,6 +755,13 @@ function (Controller, MessageBox, Filter) {
                         Packer.toBlob(doc).then(blob => {
                             const fileName = "Termination_Form.docx";
                             saveAs(blob, fileName);
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                                const base64String = reader.result.split(",")[1];
+                                console.log("Base64 Uploaded Doc String:", base64String.substring(0, 100));
+                                that.uploadToSuccessFactors(base64String, fileName);
+                            };
+                            reader.readAsDataURL(blob)
                         });
                     },
                     error: function () {
