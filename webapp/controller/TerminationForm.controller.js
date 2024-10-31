@@ -45,9 +45,10 @@ function (Controller, MessageBox, Filter) {
 
         },
 
+        // #region Create Direct Reports Step
         createDirectReportsStep: function () {
             // Define and return the "Direct Reports" step as a separate function
-            return new sap.m.WizardStep({
+            const oDirectReportsStep = new sap.m.WizardStep({
                 id: "OptionalInfoStep",
                 title: "Direct Reports",
                 validated: false,
@@ -58,7 +59,6 @@ function (Controller, MessageBox, Filter) {
                     new sap.m.SearchField({
                         id: "searchField",
                         width: "500px",
-                        class: "centeredFormContent",
                         placeholder: "Search for...",
                         enableSuggestions: true,
                         suggest: this.onSuggest.bind(this),  // Define onSuggest in the controller
@@ -74,8 +74,11 @@ function (Controller, MessageBox, Filter) {
                     }),
                 ]
             });
-        },
 
+            oDirectReportsStep.addStyleClass("centeredFormContent");
+            return oDirectReportsStep;
+        },
+         // #endregion
 
 
         // #region View Review Page
@@ -221,6 +224,9 @@ function (Controller, MessageBox, Filter) {
 
             
 		},
+         // #endregion
+
+        // #region Edit Navigation
 
         backToWizardContent: function () {
 			this._oNavContainer.backToPage(this._oWizardContentPage.getId());
@@ -252,7 +258,7 @@ function (Controller, MessageBox, Filter) {
 			this._handleNavigationToStep(3);
 		},
 
-         // #endregion
+        // #endregion
 
         // VisibilityFunction: function () {
         //     const ContractDay = this.getView().byId("datePicker")
@@ -414,9 +420,16 @@ function (Controller, MessageBox, Filter) {
                 });
             }
         },
+         // #endregion
 
+        // #region Uploading Docx to Successfactors
         uploadToSuccessFactors: function (base64String, fileName) {
             const oModel = this.getOwnerComponent().getModel();
+
+            const UId = this._sUserId
+            console.log(UId)
+
+            let UploadPayload = {};
         
             const attachmentData = {
                 "__metadata": {
@@ -433,11 +446,31 @@ function (Controller, MessageBox, Filter) {
             oModel.create("/Attachment", attachmentData, {
                 success: function (odata) {
                     console.log("Document uploaded successfully. Attachment ID:", odata.attachmentId);
+                    UploadPayload = {
+                        "__metadata": {
+                            "uri" : "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+UId+"')",
+                            "type" : "SFOData.cust_EmployeeTerminationForm"
+                        },
+        
+                        "cust_DocxTerminationFormNav": {
+                                "__metadata" : {
+                                    "uri" : `Attachment('${odata.attachmentId}')`
+                                }
+                        }
+                    };
+
+                    oModel.create("/upsert", UploadPayload, {
+                        success: function() {
+                            console.log("Upload Success!")
+                        }
+                    })
                 },
                 error: function (oError) {
                     console.error("Error uploading document:", oError);
                 }
             });
+
+
         },
         // #endregion
         
@@ -622,7 +655,13 @@ function (Controller, MessageBox, Filter) {
                         Packer.toBlob(doc).then(blob => {
                             const fileName = "Termination_Form.docx";
                             saveAs(blob, fileName);
-                            console.log(oEvent)
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                                const base64String = reader.result.split(",")[1];
+                                console.log("Base64 Uploaded Doc String:", base64String.substring(0, 100));
+                                that.uploadToSuccessFactors(base64String, fileName);
+                            };
+                            reader.readAsDataURL(blob)
                         });
                     },
                     error: function () {
@@ -1453,7 +1492,7 @@ function (Controller, MessageBox, Filter) {
 
         // #endregion
 
-        // #region Filtering
+        // #region Filtering Term reason
         onAfterRendering: function() {
             const oComboBox = this.getView().byId("terminationReasonComboBox");
             const oModel = this.getView().getModel();
@@ -1608,155 +1647,301 @@ function (Controller, MessageBox, Filter) {
         handleWizardCancel: function () {
 			this._handleMessageBoxOpen("Are you sure you want to cancel the form?", "warning");
 		},
-
-         // #endregion
+        // #endregion
 
 
         // #region Send Termination details to custom MDF
         submitForm: async function() {
-            const that = this;
-            let EmpNr = that.getView().byId("empnr").getText();
-            let EmpName = that.getView().byId("empname").getText();
 
-            let PosR = that.getView().byId("comboBox1").getValue();
-            let Regret = that.getView().byId("comboBox2").getValue();
-            let directReport = sap.ui.getCore().byId("searchField").getValue();
-            let email = that.getView().byId("Email").getValue();
-            let TermReason = that.getView().byId("terminationReasonComboBox").getValue();
-            let backFill = that.getView().byId("comboBox4").getValue();
-
-            let resigDate = that.getView().byId("resignationDatePicker").getValue()
-            let rDate = new Date(resigDate);
-            let rDateInTicks = "/Date(" + rDate.getTime() +")/";
-
-            let LastContractDay = that.getView().byId("datePicker").getValue();
-            let oDate = new Date(LastContractDay);
-            let oDateInTicks = "/Date(" + oDate.getTime() + ")/";
-
-            let payload = {};
-
-            if (that._oFileData){
-                try{
-                    const attachmentId = await that.uploadAttachment(that._oFileData.fileName, that._oFileData.fileContent);
-                    const attachmentId2 = await that.uploadAttachment2(that._oFileData2.fileName, that._oFileData2.fileContent);
-                    
-                    if (PosR === "TERVCOMP") {
-                        payload = {
-                            "__metadata": {
-                                "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
-                                "type" : "SFOData.cust_EmployeeTerminationForm"
-                            },
-                        
-                            "cust_PositionRemain": PosR,
-                            "cust_RegrettedLoss": Regret,
-                            "cust_DirectReports": directReport,
-                            "cust_Email": email,
-                            "cust_EmployeeNumber": EmpNr,
-                            "cust_EmployeeName": EmpName,
-                            "cust_LastContractDay" : oDateInTicks,
-                            "cust_TerminationReason" : TermReason,
-                            "cust_EmployeeBackfill" : backFill,
-                            "cust_ResignationDate" : rDateInTicks,
-                            "cust_TerminationLetterNav" : {
-                                 "__metadata" : {
-                                     "uri" : `Attachment('${attachmentId}')`
-                                }
-                            },
-
-                            "cust_SeveranceDocumentNav" : {
-                                "__metadata" : {
-                                    "uri" : `Attachment('${attachmentId2}')`
-                                }
-                            }
-                        };
-
-                    } else {
-                        payload = {
-                            "__metadata": {
-                                "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
-                                "type" : "SFOData.cust_EmployeeTerminationForm"
-                            },
-
-                            "cust_PositionRemain": PosR,
-                            "cust_RegrettedLoss": Regret,
-                            "cust_DirectReports": directReport,
-                            "cust_Email": email,
-                            "cust_EmployeeNumber": EmpNr,
-                            "cust_EmployeeName": EmpName,
-                            "cust_LastContractDay" : oDateInTicks,
-                            "cust_TerminationReason" : TermReason,
-                            "cust_EmployeeBackfill" : backFill,
-                            "cust_ResignationDate" : null,
-                            "cust_TerminationLetterNav" : {
-                                "__metadata" : {
-                                    "uri" : `Attachment('${attachmentId}')`
-                               }
-                           },
-
-                           "cust_SeveranceDocumentNav" : {
-                                "__metadata" : {
-                                    "uri" : `Attachment('${attachmentId2}')`
-                                }
-                            }
-                            
-                        };
-
-                    }
-
-            var oModel = that.getOwnerComponent().getModel();
-            oModel.create("/upsert", payload, {
-                success: function() {
-                    sap.m.MessageBox.show("Termination Form Submitted", {
-                        icon: sap.m.MessageBox.Icon.SUCCESS,
-                        title: "Success!"
-                    });
-
-                    // Clear the input fields after submission
-                    // that.getView().byId("empnr").setText('');   // Clear employee number
-                    // that.getView().byId("empname").setText(''); // Clear employee name
-                    
-                    // that.getView().byId("terminationLetter").setValue('')
-                    // that.getView().byId("calculationDocument").setValue('')
-                    // that.getView().byId("comboBox1").setValue('');
-                    // that.getView().byId("comboBox2").setValue('');
-                    // that.getView().byId("searchField").setValue('');
-                    // that.getView().byId("Email").setValue('');
-                    // that.getView().byId("terminationReasonComboBox").setValue('');
-                    // that.getView().byId("comboBox4").setValue('');
-
-                    // that.getView().byId("resignationDatePicker").setValue('')
-                    // that.getView().byId("datePicker").setValue(''); // Clear datepicker
-                
-                },
-                error: function (oError){
-                    console.error(oError)
-                    sap.m.MessageBox.show("Error in form submission", {
-                        icon: sap.m.MessageBox.Icon.ERROR,
-                        title: "Warning!"
-                    });
-                }
-            });
+            if (this.teamMemberSize >= 1) {
+                const that = this;
+                let EmpNr = that.getView().byId("empnr").getText();
+                let EmpName = that.getView().byId("empname").getText();
     
-        } 
-            catch (error) 
-                 {
-                    console.error("Error uploading attachment:", error);
-                    sap.m.MessageBox.show("Error uploading attachments", {
-                        icon: sap.m.MessageBox.Icon.ERROR,
-                        title: "Warning!"
-                    });
-                 }
-                 
-        }
+                let PosR = that.getView().byId("comboBox1").getValue();
+                let Regret = that.getView().byId("comboBox2").getValue();
+                let directReport = sap.ui.getCore().byId("searchField").getValue();
+                let email = that.getView().byId("Email").getValue();
+                let TermReason = that.getView().byId("terminationReasonComboBox").getValue();
+                let backFill = that.getView().byId("comboBox4").getValue();
+    
+                let resigDate = that.getView().byId("resignationDatePicker").getValue()
+                let rDate = new Date(resigDate);
+                let rDateInTicks = "/Date(" + rDate.getTime() +")/";
+    
+                let LastContractDay = that.getView().byId("datePicker").getValue();
+                let oDate = new Date(LastContractDay);
+                let oDateInTicks = "/Date(" + oDate.getTime() + ")/";
+    
+                let payload = {};
+    
+                if (that._oFileData){
+                    try{
+                        const attachmentId = await that.uploadAttachment(that._oFileData.fileName, that._oFileData.fileContent);
+                        const attachmentId2 = await that.uploadAttachment2(that._oFileData2.fileName, that._oFileData2.fileContent);
+                        
+                        if (TermReason === "Vol Resignation to Competitor (TERVCOMP)") {
+                            payload = {
+                                "__metadata": {
+                                    "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
+                                    "type" : "SFOData.cust_EmployeeTerminationForm"
+                                },
+                            
+                                "cust_PositionRemain": PosR,
+                                "cust_RegrettedLoss": Regret,
+                                "cust_DirectReports": directReport,
+                                "cust_Email": email,
+                                "cust_EmployeeNumber": EmpNr,
+                                "cust_EmployeeName": EmpName,
+                                "cust_LastContractDay" : oDateInTicks,
+                                "cust_TerminationReason" : TermReason,
+                                "cust_EmployeeBackfill" : backFill,
+                                "cust_ResignationDate" : rDateInTicks,
+                                "cust_TerminationLetterNav" : {
+                                     "__metadata" : {
+                                         "uri" : `Attachment('${attachmentId}')`
+                                    }
+                                },
+    
+                                "cust_SeveranceDocumentNav" : {
+                                    "__metadata" : {
+                                        "uri" : `Attachment('${attachmentId2}')`
+                                    }
+                                }
+                            };
+    
+                        } else {
+                            payload = {
+                                "__metadata": {
+                                    "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
+                                    "type" : "SFOData.cust_EmployeeTerminationForm"
+                                },
+    
+                                "cust_PositionRemain": PosR,
+                                "cust_RegrettedLoss": Regret,
+                                "cust_DirectReports": directReport,
+                                "cust_Email": email,
+                                "cust_EmployeeNumber": EmpNr,
+                                "cust_EmployeeName": EmpName,
+                                "cust_LastContractDay" : oDateInTicks,
+                                "cust_TerminationReason" : TermReason,
+                                "cust_EmployeeBackfill" : backFill,
+                                "cust_ResignationDate" : null,
+                                "cust_TerminationLetterNav" : {
+                                    "__metadata" : {
+                                        "uri" : `Attachment('${attachmentId}')`
+                                   }
+                               },
+    
+                               "cust_SeveranceDocumentNav" : {
+                                    "__metadata" : {
+                                        "uri" : `Attachment('${attachmentId2}')`
+                                    }
+                                }
+                                
+                            };
+    
+                        }
+    
+                var oModel = that.getOwnerComponent().getModel();
+                oModel.create("/upsert", payload, {
+                    success: function() {
+                        sap.m.MessageBox.show("Termination Form Submitted", {
+                            icon: sap.m.MessageBox.Icon.SUCCESS,
+                            title: "Success!"
+                        });
+    
+                        // Clear the input fields after submission
+                        // that.getView().byId("empnr").setText('');   // Clear employee number
+                        // that.getView().byId("empname").setText(''); // Clear employee name
+                        
+                        // that.getView().byId("terminationLetter").setValue('')
+                        // that.getView().byId("calculationDocument").setValue('')
+                        // that.getView().byId("comboBox1").setValue('');
+                        // that.getView().byId("comboBox2").setValue('');
+                        // that.getView().byId("searchField").setValue('');
+                        // that.getView().byId("Email").setValue('');
+                        // that.getView().byId("terminationReasonComboBox").setValue('');
+                        // that.getView().byId("comboBox4").setValue('');
+    
+                        // that.getView().byId("resignationDatePicker").setValue('')
+                        // that.getView().byId("datePicker").setValue(''); // Clear datepicker
+                    
+                    },
+                    error: function (oError){
+                        console.error(oError)
+                        sap.m.MessageBox.show("Error in form submission", {
+                            icon: sap.m.MessageBox.Icon.ERROR,
+                            title: "Warning!"
+                        });
+                    }
+                });
+        
+            } 
+                catch (error) 
+                     {
+                        console.error("Error uploading attachment:", error);
+                        sap.m.MessageBox.show("Error uploading attachments", {
+                            icon: sap.m.MessageBox.Icon.ERROR,
+                            title: "Warning!"
+                        });
+                     }
+                     
+            }
+    
+            else
+            {
+                  console.error("No file data available for upload.");
+                  sap.m.MessageBox.show("No file data available for upload.", {
+                    icon: sap.m.MessageBox.Icon.ERROR,
+                    title: "Warning!"
+                });
+            }
 
-        else
-        {
-              console.error("No file data available for upload.");
-              sap.m.MessageBox.show("No file data available for upload.", {
-                icon: sap.m.MessageBox.Icon.ERROR,
-                title: "Warning!"
-            });
-        }
+            } else //main else 
+            
+            {
+                const that = this;
+                let EmpNr = that.getView().byId("empnr").getText();
+                let EmpName = that.getView().byId("empname").getText();
+    
+                let PosR = that.getView().byId("comboBox1").getValue();
+                let Regret = that.getView().byId("comboBox2").getValue();
+                let email = that.getView().byId("Email").getValue();
+                let TermReason = that.getView().byId("terminationReasonComboBox").getValue();
+                let backFill = that.getView().byId("comboBox4").getValue();
+    
+                let resigDate = that.getView().byId("resignationDatePicker").getValue()
+                let rDate = new Date(resigDate);
+                let rDateInTicks = "/Date(" + rDate.getTime() +")/";
+    
+                let LastContractDay = that.getView().byId("datePicker").getValue();
+                let oDate = new Date(LastContractDay);
+                let oDateInTicks = "/Date(" + oDate.getTime() + ")/";
+    
+                let payload = {};
+    
+                if (that._oFileData){
+                    try{
+                        const attachmentId = await that.uploadAttachment(that._oFileData.fileName, that._oFileData.fileContent);
+                        const attachmentId2 = await that.uploadAttachment2(that._oFileData2.fileName, that._oFileData2.fileContent);
+                        
+                        if (TermReason === "Vol Resignation to Competitor (TERVCOMP)") {
+                            payload = {
+                                "__metadata": {
+                                    "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
+                                    "type" : "SFOData.cust_EmployeeTerminationForm"
+                                },
+                            
+                                "cust_PositionRemain": PosR,
+                                "cust_RegrettedLoss": Regret,
+                                "cust_Email": email,
+                                "cust_EmployeeNumber": EmpNr,
+                                "cust_EmployeeName": EmpName,
+                                "cust_LastContractDay" : oDateInTicks,
+                                "cust_TerminationReason" : TermReason,
+                                "cust_EmployeeBackfill" : backFill,
+                                "cust_ResignationDate" : rDateInTicks,
+                                "cust_TerminationLetterNav" : {
+                                     "__metadata" : {
+                                         "uri" : `Attachment('${attachmentId}')`
+                                    }
+                                },
+    
+                                "cust_SeveranceDocumentNav" : {
+                                    "__metadata" : {
+                                        "uri" : `Attachment('${attachmentId2}')`
+                                    }
+                                }
+                            };
+    
+                        } else {
+                            payload = {
+                                "__metadata": {
+                                    "uri": "https://apisalesdemo2.successfactors.eu/odata/v2/cust_EmployeeTerminationForm('"+that._sUserId+"')",
+                                    "type" : "SFOData.cust_EmployeeTerminationForm"
+                                },
+    
+                                "cust_PositionRemain": PosR,
+                                "cust_RegrettedLoss": Regret,
+                                "cust_Email": email,
+                                "cust_EmployeeNumber": EmpNr,
+                                "cust_EmployeeName": EmpName,
+                                "cust_LastContractDay" : oDateInTicks,
+                                "cust_TerminationReason" : TermReason,
+                                "cust_EmployeeBackfill" : backFill,
+                                "cust_ResignationDate" : null,
+                                "cust_TerminationLetterNav" : {
+                                    "__metadata" : {
+                                        "uri" : `Attachment('${attachmentId}')`
+                                   }
+                               },
+    
+                               "cust_SeveranceDocumentNav" : {
+                                    "__metadata" : {
+                                        "uri" : `Attachment('${attachmentId2}')`
+                                    }
+                                }
+                                
+                            };
+    
+                        }
+    
+                var oModel = that.getOwnerComponent().getModel();
+                oModel.create("/upsert", payload, {
+                    success: function() {
+                        sap.m.MessageBox.show("Termination Form Submitted", {
+                            icon: sap.m.MessageBox.Icon.SUCCESS,
+                            title: "Success!"
+                        });
+    
+                        // Clear the input fields after submission
+                        // that.getView().byId("empnr").setText('');   // Clear employee number
+                        // that.getView().byId("empname").setText(''); // Clear employee name
+                        
+                        // that.getView().byId("terminationLetter").setValue('')
+                        // that.getView().byId("calculationDocument").setValue('')
+                        // that.getView().byId("comboBox1").setValue('');
+                        // that.getView().byId("comboBox2").setValue('');
+                        // that.getView().byId("searchField").setValue('');
+                        // that.getView().byId("Email").setValue('');
+                        // that.getView().byId("terminationReasonComboBox").setValue('');
+                        // that.getView().byId("comboBox4").setValue('');
+    
+                        // that.getView().byId("resignationDatePicker").setValue('')
+                        // that.getView().byId("datePicker").setValue(''); // Clear datepicker
+                    
+                    },
+                    error: function (oError){
+                        console.error(oError)
+                        sap.m.MessageBox.show("Error in form submission", {
+                            icon: sap.m.MessageBox.Icon.ERROR,
+                            title: "Warning!"
+                        });
+                    }
+                });
+        
+            } 
+                catch (error) 
+                     {
+                        console.error("Error uploading attachment:", error);
+                        sap.m.MessageBox.show("Error uploading attachments", {
+                            icon: sap.m.MessageBox.Icon.ERROR,
+                            title: "Warning!"
+                        });
+                     }
+                     
+            }
+    
+            else
+            {
+                  console.error("No file data available for upload.");
+                  sap.m.MessageBox.show("No file data available for upload.", {
+                    icon: sap.m.MessageBox.Icon.ERROR,
+                    title: "Warning!"
+                });
+            }
+            }
       }
     })
 });
