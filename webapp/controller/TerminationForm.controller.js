@@ -1,7 +1,9 @@
+
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageBox",
     "sap/ui/model/Filter",
+    
 ],
 function (Controller, MessageBox, Filter) {
     "use strict";
@@ -810,88 +812,38 @@ function (Controller, MessageBox, Filter) {
             }
         },
 
-        onGenerateFromTemplate: function () {
-            // Check if Docxtemplater is already loaded, if not, load dynamically
-            if (typeof window.Docxtemplater === 'undefined') {
-                console.log("Loading Docxtemplater dynamically...");
-                
-                const script = document.createElement('script');
-                script.src = "https://cdn.jsdelivr.net/npm/docxtemplater@3.17.1/dist/docxtemplater.min.js";
-                
-                // Once the script is loaded, call the function that generates the document
-                script.onload = () => {
-                    console.log("Docxtemplater loaded successfully.");
+        // onGenerateFromTemplate: function () {
+        //     const templatePath = "./template/Briefvorlage aktuelles CD.docx"; // Update to actual path
         
-                    // Directly access Docxtemplater from the module or namespace it was loaded into
-                    if (typeof Docxtemplater === 'undefined') {
-                        console.error("Docxtemplater is still not available.");
-                    } else {
-                        console.log("Docxtemplater is defined and ready to use.");
-                        this._generateDocument();  // Call your function after script is loaded
-                    }
-                };
-                
-                script.onerror = (error) => {
-                    console.error("Error loading Docxtemplater:", error);
-                };
-                
-                document.head.appendChild(script);  // Append the script to the head of the document
-            } else {
-                // If Docxtemplater is already loaded, directly call the function
-                this._generateDocument();
-            }
-        },
-        
-        
-        _generateDocument: function () {
-            const templatePath = "./template/Briefvorlage aktuelles CD.docx";
-            console.log("Fetching template from: ", templatePath);
-        
-            fetch(templatePath)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Network response was not ok, status: ${response.status}`);
-                    }
-                    return response.blob();
-                })
-                .then(blob => blob.arrayBuffer()) // Convert blob to ArrayBuffer
-                .then(data => {
-                    const zip = new JSZip();
-                    return zip.loadAsync(data);
-                })
-                .then(zipContent => {
-                    // Use Docxtemplater after confirming it's loaded
-                    const doc = new window.Docxtemplater().loadZip(zipContent);
-        
-                    // Set template data dynamically
-                    doc.setData({
-                        NAME: this.getView().byId("empname").getText(),
-                        DATE: new Date().toLocaleDateString(),
-                        // Add other fields here
-                    });
-        
-                    try {
-                        // Render the document with the data
-                        doc.render();
-        
-                        // Generate the document as a Blob
-                        const outputBlob = doc.getZip().generate({ type: "blob" });
-                        const fileName = "Termination_Form_Filled.docx";
-                        saveAs(outputBlob, fileName);  // This triggers download using FileSaver.js
-                    } catch (error) {
-                        console.error("Error rendering document:", error);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error loading zip content:", error);
-                });
-        },
+        //     fetch(templatePath)
+        //         .then(response => response.arrayBuffer())
+        //         .then(data => {
+        //             const zip = new JSZip();
+        //             return zip.loadAsync(data);
+        //         })
+        //         .then(zipContent => {
+        //             let doc = new Docxtemplater(zip,
+        //                 {
+        //                     NAME: this.getView().byId("empname").getText(),
+        //                     DATE: new Date().toLocaleDateString(),
+        //                 }
+        //             ).loadZip(zipContent);
+                    
+        //             try {
+        //                 doc.render();
+        //                 const outputBlob = doc.getZip().generate({ type: "blob" });
+        //                 saveAs(outputBlob, "Termination_Form_Filled.docx");
+        //             } catch (error) {
+        //                 console.error("Error rendering document:", error);
+        //             }
+        //         })
+        //         .catch(error => {
+        //             console.error("Error loading template:", error);
+        //         });
+        // },
         
         
         
-
-
-    
         onGeneratePDF: function () {
             // Create a new jsPDF instance
             const { jsPDF } = window.jspdf;
@@ -1295,12 +1247,12 @@ function (Controller, MessageBox, Filter) {
                         
                         doc.setFontSize(12);
                         doc.setFont("Helvetica", "bold");
-                        doc.text("Termination Letter ID:", 20, 210);
+                        doc.text("Termination Letter:", 20, 210);
                         doc.setFont("Helvetica", "normal");
                         doc.text(TL, 70, 210);
                         
                         doc.setFont("Helvetica", "bold");
-                        doc.text("Severance Pay Document ID:", 20, 220);
+                        doc.text("Severance Pay:", 20, 220);
                         doc.setFont("Helvetica", "normal");
                         doc.text(SP, 70, 220);
                     }
