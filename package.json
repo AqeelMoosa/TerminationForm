@@ -9,7 +9,10 @@
   ],
   "main": "webapp/index.html",
   "dependencies": {
-    "jspdf": "^2.5.2"
+    "docxtemplater": "^3.52.0",
+    "file-saver": "^2.0.5",
+    "jspdf": "^2.5.2",
+    "jszip": "^3.10.1"
   },
   "devDependencies": {
     "@sap-ux/ui5-middleware-fe-mockserver": "2",

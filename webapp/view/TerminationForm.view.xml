@@ -174,7 +174,7 @@
 									<Button text="Generate Termination Form PDF" press=".onGeneratePDF" />
 									<Button text="Save Draft" />
 									<Button text="Trigger notification to works councils" />
-									<Button text="Generate Termination Form Word Document" press="onGenerateWordDoc" />
+									<Button text="Generate Termination Form Word Document" press="onGenerateFromTemplate" />
 
 						</OverflowToolbar>
 					</footer>
